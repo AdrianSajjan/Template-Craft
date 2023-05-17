@@ -1,13 +1,22 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "@zocket/App";
 import { ChakraProvider } from "@chakra-ui/react";
-import { theme } from "@zocket/config/theme";
+
+import { createFactory } from "@zocket/lib/utils";
+import { ToastContainer, theme } from "@zocket/config/theme";
+import { Canvas, CanvasProvider } from "@zocket/store/canvas";
+
+import App from "@zocket/App";
+
+const canvas = createFactory(Canvas);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
-      <App />
+      <CanvasProvider value={canvas}>
+        <App />
+        <ToastContainer />
+      </CanvasProvider>
     </ChakraProvider>
   </React.StrictMode>
 );

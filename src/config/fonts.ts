@@ -56,10 +56,8 @@ export const mapFontsToSource = {
   "Playfair Display Bold": "https://zocket-image-library.s3.ap-south-1.amazonaws.com/reels/Playfair_Display/PlayfairDisplay-Bold.ttf",
   "Playfair Display Black": "https://zocket-image-library.s3.ap-south-1.amazonaws.com/reels/Playfair_Display/PlayfairDisplay-Black.ttf",
   "Playfair Display Italic": "https://zocket-image-library.s3.ap-south-1.amazonaws.com/reels/Playfair_Display/PlayfairDisplay-Italic.ttf",
-  "Playfair Display Medium Italic":
-    "https://zocket-image-library.s3.ap-south-1.amazonaws.com/reels/Playfair_Display/PlayfairDisplay-MediumItalic.ttf",
-  "Playfair Display Semi Bold Italic":
-    "https://zocket-image-library.s3.ap-south-1.amazonaws.com/reels/Playfair_Display/PlayfairDisplay-SemiBoldItalic.ttf",
+  "Playfair Display Medium Italic": "https://zocket-image-library.s3.ap-south-1.amazonaws.com/reels/Playfair_Display/PlayfairDisplay-MediumItalic.ttf",
+  "Playfair Display Semi Bold Italic": "https://zocket-image-library.s3.ap-south-1.amazonaws.com/reels/Playfair_Display/PlayfairDisplay-SemiBoldItalic.ttf",
   "Playfair Display Bold Italic": "https://zocket-image-library.s3.ap-south-1.amazonaws.com/reels/Playfair_Display/PlayfairDisplay-BoldItalic.ttf",
   "Playfair Display Black Italic": "https://zocket-image-library.s3.ap-south-1.amazonaws.com/reels/Playfair_Display/PlayfairDisplay-BlackItalic.ttf",
   "Noto Sans Regular": "https://zocket-image-library.s3.ap-south-1.amazonaws.com/reels/Noto_Sans/NotoSans-Regular.ttf",

@@ -1,6 +1,11 @@
 import { mapFontsToSource } from "@zocket/config/fonts";
 
-export async function addFontFace(name: string) {
+export interface FontFaceResponse {
+  error: string | null;
+  name: string;
+}
+
+export async function addFontFace(name: string): Promise<FontFaceResponse> {
   const source = mapFontsToSource[name];
 
   if (!source)

@@ -11,8 +11,8 @@ export default function ColorPicker({ value, onChange }: ColorPickerProps) {
       <Picker size="xs" variant="outline">
         <Swatch backgroundColor="#FFFFFF" />
       </Picker>
-      <Color size="xs" value="#FFFFFF" />
-      <Opacity size="xs" value="100%" textAlign="center" />
+      <Color size="xs" value="#FFFFFF" isReadOnly />
+      <Opacity size="xs" value="100%" isReadOnly textAlign="center" />
     </Grid>
   );
 }

@@ -1,3 +1,3 @@
-export function createFactory<T>(_class: new (...args) => T): T {
-  return new _class();
+export function createFactory<T, R extends any[]>(_class: new (...args: R) => T, ...args: R): T {
+  return new _class(...args);
 }

@@ -11,5 +11,5 @@ export interface TemplateState {
   type: "textbox" | "image" | "rect";
   name: string;
   details: any;
-  value?: string;
+  value: string;
 }

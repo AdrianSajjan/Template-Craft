@@ -1,4 +1,4 @@
-import { extendTheme, SystemStyleObject } from "@chakra-ui/react";
+import { createStandaloneToast, extendTheme, SystemStyleObject } from "@chakra-ui/react";
 
 type CreateProps = Record<string, SystemStyleObject>;
 
@@ -46,3 +46,5 @@ export const theme = extendTheme({
     },
   },
 });
+
+export const { ToastContainer, toast } = createStandaloneToast({ theme });
