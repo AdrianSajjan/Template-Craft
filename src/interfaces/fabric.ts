@@ -1,25 +1,28 @@
-export type FabricCanvas = fabric.Canvas | null;
-export type FabricStaticCanvas = fabric.StaticCanvas | null;
-export type FabricEvent = fabric.IEvent<MouseEvent>;
+export type CanvasMouseEvent = fabric.IEvent<MouseEvent>;
 
-export interface FabricState {
+export type Clipboard = fabric.Object | null;
+
+export type ObjectType = "textbox" | "image" | "rect";
+
+export type ObjectKeys = keyof fabric.Object;
+
+export type TextboxKeys = keyof fabric.Textbox;
+
+export interface CanvasState {
   version: string;
   objects: fabric.Object[];
   background?: string;
 }
 
-export type FabricStates = Array<FabricState>;
-export type FabricObject = fabric.Object;
-export type FabricTextbox = fabric.Textbox;
-
-export type TextboxKeys = keyof fabric.Textbox;
-export type ObjectKeys = keyof fabric.Object;
-
-export interface FabricSelectedState {
-  status: boolean;
-  type: string;
+export interface SelectedState {
   name: string;
   details: any;
+  status: boolean;
+  type: ObjectType | "none";
 }
 
-export type Clipboard = FabricObject | null;
+export interface SceneObject {
+  name: string;
+  type: ObjectType;
+  isLocked: boolean;
+}

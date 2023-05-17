@@ -11,18 +11,19 @@ import { defaultFont, defaultFontSize } from "@zocket/config/fonts";
 import { exportedProps, maxUndoRedoSteps, originalHeight, originalWidth } from "@zocket/config/app";
 
 import { FabricTemplate } from "@zocket/interfaces/app";
-import { Clipboard, FabricCanvas, FabricEvent, FabricObject, FabricSelectedState, FabricState, FabricTextbox, TextboxKeys } from "@zocket/interfaces/fabric";
+import { Clipboard, CanvasMouseEvent, ObjectType, SelectedState, CanvasState, TextboxKeys, SceneObject } from "@zocket/interfaces/fabric";
 
 export class Canvas {
-  instance: FabricCanvas = null;
+  instance: fabricJS.Canvas | null = null;
+
+  objects: SceneObject[] = [];
+  selected: SelectedState = { status: false, type: "none", name: "", details: null };
 
   clipboard: Clipboard = null;
-  selected: FabricSelectedState = { status: false, type: "none", name: "", details: null };
-
-  private undoStack: FabricState[] = [];
-  private redoStack: FabricState[] = [];
-
   actionsEnabled: boolean = true;
+
+  private undoStack: CanvasState[] = [];
+  private redoStack: CanvasState[] = [];
 
   constructor() {
     makeAutoObservable(this);
@@ -36,7 +37,7 @@ export class Canvas {
     return this.actionsEnabled && this.redoStack.length > 0;
   }
 
-  onInitialize(canvas: FabricCanvas) {
+  onInitialize(canvas: fabricJS.Canvas) {
     this.instance = canvas;
   }
 
@@ -58,6 +59,7 @@ export class Canvas {
 
           const textbox = createFactory(fabricJS.Textbox, element.value, { ...element.details, name: element.name, fontFamily: response.name });
           this.instance.add(textbox);
+
           break;
         }
 
@@ -65,10 +67,12 @@ export class Canvas {
           const image: fabricJS.Image = yield createFactory(Promise, (resolve) => {
             fabricJS.Image.fromURL(element.value, (image) => resolve(image), { ...element.details, name: element.name, objectCaching: true });
           });
-          this.instance!.add(image);
+          this.instance.add(image);
           break;
         }
       }
+
+      this.objects.push({ name: element.name, type: element.type, isLocked: false });
     }
 
     this.instance.fire("object:modified", { target: null });
@@ -89,6 +93,13 @@ export class Canvas {
         break;
       }
     }
+  }
+
+  onChangeDimensions({ height, width }: { height?: number | string; width?: number | string }) {
+    if (!this.instance) return;
+    if (width) this.instance.setWidth(width);
+    if (height) this.instance.setHeight(height);
+    this.instance.requestRenderAll();
   }
 
   *onUndo() {
@@ -120,9 +131,9 @@ export class Canvas {
     yield this.onLoadFromJSON(redoState);
   }
 
-  onSelect(event: FabricEvent) {
+  onSelect(event: CanvasMouseEvent) {
     const element = event.selected!.at(0)!;
-    this.selected = { status: true, type: element.type!, name: element.name!, details: element.toObject(exportedProps) };
+    this.selected = { status: true, type: element.type! as ObjectType, name: element.name!, details: element.toObject(exportedProps) };
   }
 
   onDeselect() {
@@ -134,7 +145,7 @@ export class Canvas {
     this.onPaste();
   }
 
-  onSave(_: FabricEvent) {
+  onSave(_: CanvasMouseEvent) {
     if (!this.instance) return;
 
     this.redoStack = [];
@@ -153,13 +164,13 @@ export class Canvas {
     }
   }
 
-  onScale(event: FabricEvent) {
+  onScale(event: CanvasMouseEvent) {
     if (!this.instance) return;
 
     const element = event.target!;
 
     if (element.type === "textbox") {
-      const text = element as FabricTextbox;
+      const text = element as fabricJS.Textbox;
       text.set({ fontSize: Math.round(text.fontSize! * element.scaleY!), width: element.width! * element.scaleX!, scaleX: 1, scaleY: 1 });
     }
 
@@ -172,14 +183,14 @@ export class Canvas {
     const element = this.instance.getActiveObject();
     if (!element) return;
 
-    element.clone((clone: FabricObject) => {
+    element.clone((clone: fabricJS.Object) => {
       this.clipboard = clone;
     }, exportedProps);
   }
 
   onPaste() {
     if (!this.instance || !this.clipboard) return;
-    this.clipboard.clone((clone: FabricObject) => {
+    this.clipboard.clone((clone: fabricJS.Object) => {
       this.instance!.discardActiveObject();
 
       clone.set({ name: `frame_${nanoid(3)}`, left: clone.left! + 10, top: clone.top! + 10, evented: true });
@@ -213,27 +224,23 @@ export class Canvas {
     const response: FontFaceResponse = yield addFontFace(fontFamily);
     if (response.error) toast({ title: "Warning", description: response.error, variant: "left-accent", status: "warning", isClosable: true });
 
-    const text = this.instance.getActiveObject() as FabricTextbox;
+    const text = this.instance.getActiveObject() as fabricJS.Textbox;
     text.set("fontFamily", response.name);
 
     this.selected.details = text.toObject(exportedProps);
 
-    this.instance.fire("object:modified", { target: text });
-    this.instance.requestRenderAll();
+    this.instance.fire("object:modified", { target: text }).renderAll();
   }
 
-  onTextPropertyChange(property: TextboxKeys) {
-    return (value: fabricJS.Textbox[typeof property]) => {
-      if (!this.instance) return;
+  onTextPropertyChange(property: TextboxKeys, value: fabricJS.Textbox[TextboxKeys]) {
+    if (!this.instance) return;
 
-      const text = this.instance.getActiveObject() as FabricTextbox;
-      text.set(property, value);
+    const text = this.instance.getActiveObject() as fabricJS.Textbox;
 
-      this.selected.details = text.toObject(exportedProps);
+    text.set(property, value);
 
-      this.instance.fire("object:modified", { target: text });
-      this.instance.requestRenderAll();
-    };
+    this.selected.details = text.toObject(exportedProps);
+    this.instance.fire("object:modified", { target: text }).renderAll();
   }
 
   *onAddText(text = "Text", { fill = "#000000", fontSize = defaultFontSize }) {
@@ -248,8 +255,7 @@ export class Canvas {
     this.instance.viewportCenterObject(textbox);
     this.instance.setActiveObject(textbox);
 
-    this.instance.fire("object:modified", { target: textbox });
-    this.instance.requestRenderAll();
+    this.instance.fire("object:modified", { target: textbox }).renderAll();
   }
 
   *onAddImage(source: string, { height = 500, width = 500 }) {
@@ -270,7 +276,7 @@ export class Canvas {
     this.instance!.requestRenderAll();
   }
 
-  *onLoadFromJSON(state: FabricState) {
+  *onLoadFromJSON(state: CanvasState) {
     if (!this.instance) return;
 
     const active = this.selected.status ? this.selected.name : false;
@@ -315,15 +321,67 @@ export function useCanvas() {
     }
   }, []);
 
+  const clickAwayListener = useCallback(
+    (event: MouseEvent) => {
+      if (!canvas.instance) return;
+
+      const target = event.target as HTMLElement;
+      if (target.id !== "canvas-container") return;
+
+      canvas.onDeselect();
+      canvas.instance.discardActiveObject().renderAll();
+    },
+    [canvas.instance]
+  );
+
   useEffect(() => {
     if (!canvas.instance) return;
+
     canvas.instance.off();
+
     canvas.instance.on("object:modified", canvas.onSave.bind(canvas));
     canvas.instance.on("object:scaling", canvas.onScale.bind(canvas));
+
     canvas.instance.on("selection:created", canvas.onSelect.bind(canvas));
     canvas.instance.on("selection:updated", canvas.onSelect.bind(canvas));
     canvas.instance.on("selection:cleared", canvas.onDeselect.bind(canvas));
-  }, [canvas.instance]);
+
+    window.addEventListener("mousedown", clickAwayListener);
+
+    return () => {
+      window.removeEventListener("mousedown", clickAwayListener);
+    };
+  }, [canvas.instance, clickAwayListener]);
 
   return [canvas, ref] as const;
 }
+
+//   const handleViewportHCenter = () => {
+//     if (!canvas) return;
+//     const element = canvas.getActiveObject()!;
+//     canvas.viewportCenterObjectH(element);
+//     element.setCoords();
+//     canvas.fire("object:modified", { target: element });
+//   };
+
+//   const handleDimensionChange = (property: "height" | "width") => (value: string) => {
+//     if (!canvas) return;
+//     const element = canvas.getActiveObject()!;
+//     if (property === "height") {
+//       if (element.type === "textbox") return;
+//       if (element.type === "image") {
+//         const scale = parseFloat(value) / element.height!;
+//         element.set("scaleY", scale);
+//       } else {
+//         element.set("height", parseFloat(value));
+//       }
+//     } else {
+//       if (element.type === "image") {
+//         const scale = parseFloat(value) / element.width!;
+//         element.set("scaleX", scale);
+//       } else {
+//         element.set("width", parseFloat(value));
+//       }
+//     }
+//     canvas.requestRenderAll();
+//   };

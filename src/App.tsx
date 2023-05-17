@@ -44,7 +44,7 @@ const Layout = styled.div`
 function App() {
   const [zoom] = useState(0.4);
 
-  const [_, ref] = useCanvas();
+  const [canvas, ref] = useCanvas();
 
   const dimensions = useMemo(() => {
     return {
@@ -60,14 +60,14 @@ function App() {
         <Header />
         <Main>
           <LayerSidebar />
-          <MainContainer>
+          <MainContainer id="canvas-container">
             <Box height={dimensions.height} width={dimensions.width} pos="relative">
               <CanvasContainer transform={dimensions.transform}>
-                <canvas ref={ref} />
+                <canvas ref={ref} id="canvas" />
               </CanvasContainer>
             </Box>
           </MainContainer>
-          <PropertySidebar />
+          <PropertySidebar key={canvas.selected.name} />
         </Main>
       </Layout>
     </Box>

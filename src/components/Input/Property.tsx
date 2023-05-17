@@ -1,12 +1,21 @@
-import { InputGroup, InputLeftElement, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper, Text } from "@chakra-ui/react";
+import { observer } from "mobx-react-lite";
+import {
+  InputGroup,
+  InputLeftElement,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
+  NumberInput,
+  NumberInputField,
+  NumberInputProps,
+  NumberInputStepper,
+  Text,
+} from "@chakra-ui/react";
 
-interface PropertyInputProps {
+interface PropertyInputProps extends NumberInputProps {
   label?: string;
-  value?: number;
-  onChange?: (_: number) => void;
 }
 
-export default function PropertyInput({ label, value, onChange }: PropertyInputProps) {
+function PropertyInput({ label, value, onChange, ...props }: PropertyInputProps) {
   return (
     <InputGroup size="xs">
       <InputLeftElement pointerEvents="none">
@@ -14,7 +23,7 @@ export default function PropertyInput({ label, value, onChange }: PropertyInputP
           {label}
         </Text>
       </InputLeftElement>
-      <NumberInput>
+      <NumberInput value={value} onChange={onChange} {...props}>
         <NumberInputField pl="6" />
         <NumberInputStepper>
           <NumberIncrementStepper color="gray.400" fontSize={8} />
@@ -24,3 +33,5 @@ export default function PropertyInput({ label, value, onChange }: PropertyInputP
     </InputGroup>
   );
 }
+
+export default observer(PropertyInput);

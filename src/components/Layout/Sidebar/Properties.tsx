@@ -1,11 +1,35 @@
-import { Box, Button, ButtonGroup, Flex, Grid, HStack, Icon, IconButton, StackDivider, Text, VStack, chakra } from "@chakra-ui/react";
-import { PropertyInput } from "@zocket/components/Input";
-import ColorPicker from "@zocket/components/Input/Color";
-import { RotateCcwIcon, RotateCwIcon } from "lucide-react";
+import { Box, Button, ButtonGroup, Grid, HStack, Icon, IconButton, StackDivider, Text, Textarea, VStack, chakra } from "@chakra-ui/react";
+import { observer } from "mobx-react-lite";
+import * as React from "react";
 
-interface SidebarProps {}
+import { ColorPicker, PropertyInput } from "@zocket/components/Input";
+import { Canvas, useCanvas } from "@zocket/store/canvas";
+import { RotateCcwIcon } from "lucide-react";
+import { RotateCwIcon } from "lucide-react";
 
-export default function PropertySidebar({}: SidebarProps) {
+interface SidebarProps {
+  canvas: Canvas;
+}
+
+const Drawer = chakra("aside", {
+  baseStyle: {
+    display: "flex",
+    flexShrink: 0,
+    flexDirection: "column",
+
+    backgroundColor: "white",
+    borderLeft: "1.5px solid #e2e8f0",
+
+    width: 320,
+    overflow: "auto",
+  },
+});
+
+const CanvasPropertySidebar = observer(({ canvas }: SidebarProps) => {
+  //
+  const [width, setWidth] = React.useState(canvas.instance!.width);
+  const [height, setHeight] = React.useState(canvas.instance!.height);
+
   return (
     <Drawer>
       <VStack alignItems="stretch" spacing="5" py="5" divider={<StackDivider borderColor="gray.200" />}>
@@ -18,8 +42,8 @@ export default function PropertySidebar({}: SidebarProps) {
               Size
             </Text>
             <HStack spacing="3">
-              <PropertyInput label="H" />
-              <PropertyInput label="W" />
+              <PropertyInput label="H" value={height} onChange={(_, height) => setHeight(height)} onBlur={() => canvas.onChangeDimensions({ height })} />
+              <PropertyInput label="W" value={width} onChange={(_, width) => setWidth(width)} onBlur={() => canvas.onChangeDimensions({ width })} />
             </HStack>
           </Grid>
           <Grid templateColumns="100px 1fr" mt="4" alignItems="center">
@@ -27,7 +51,7 @@ export default function PropertySidebar({}: SidebarProps) {
               Background
             </Text>
             <ButtonGroup size="xs" width="full" isAttached>
-              <Button flex={1} fontSize="xs" fontWeight={500}>
+              <Button variant="solid" flex={1} fontSize="xs" fontWeight={500}>
                 Color
               </Button>
               <Button variant="outline" flex={1} fontSize="xs" fontWeight={500}>
@@ -61,6 +85,10 @@ export default function PropertySidebar({}: SidebarProps) {
       </VStack>
     </Drawer>
   );
+});
+
+const TextPropertySidebar = observer(({ canvas }: SidebarProps) => {
+  const selected = canvas.selected.details;
 
   return (
     <Drawer>
@@ -74,8 +102,8 @@ export default function PropertySidebar({}: SidebarProps) {
               Size
             </Text>
             <HStack spacing="3">
-              <PropertyInput label="H" />
-              <PropertyInput label="W" />
+              <PropertyInput label="H" value={Math.round(selected.height)} isReadOnly />
+              <PropertyInput label="W" value={selected.width} onChange={(value) => canvas.onTextPropertyChange("width", +value)} />
             </HStack>
           </Grid>
           <Grid templateColumns="80px 1fr" mt="3" alignItems="center">
@@ -83,11 +111,11 @@ export default function PropertySidebar({}: SidebarProps) {
               Position
             </Text>
             <HStack spacing="3">
-              <PropertyInput label="X" />
-              <PropertyInput label="Y" />
+              <PropertyInput label="X" value={selected.left} onChange={(value) => canvas.onTextPropertyChange("left", +value)} />
+              <PropertyInput label="Y" value={selected.top} onChange={(value) => canvas.onTextPropertyChange("top", +value)} />
             </HStack>
           </Grid>
-          <Grid templateColumns="80px 1fr" mt="3" alignItems="center">
+          <Grid templateColumns="80px 1fr" mt="3" alignItems="center" display="none">
             <Text fontSize="xs" fontWeight={500}>
               Rotation
             </Text>
@@ -104,66 +132,41 @@ export default function PropertySidebar({}: SidebarProps) {
           <Text fontWeight={700} fontSize="sm">
             Text
           </Text>
+          <Textarea mt="3" fontSize="sm" px="2.5" value={selected.text} onChange={(event) => canvas.onTextPropertyChange("text", event.target.value)} />
         </Box>
       </VStack>
     </Drawer>
   );
-}
-
-const Drawer = chakra("aside", {
-  baseStyle: {
-    display: "flex",
-    flexShrink: 0,
-    flexDirection: "column",
-
-    backgroundColor: "white",
-    borderLeft: "1.5px solid #e2e8f0",
-
-    width: 320,
-    overflow: "auto",
-  },
 });
 
-// const isText = useMemo(() => (selected.details ? selected.details.type === "textbox" : false), [selected]);
+const mapSidebar = {
+  none: CanvasPropertySidebar,
+  textbox: TextPropertySidebar,
+  image: TextPropertySidebar,
+  rect: TextPropertySidebar,
+};
 
-//   const handleViewportHCenter = () => {
-//     if (!canvas) return;
-//     const element = canvas.getActiveObject()!;
-//     canvas.viewportCenterObjectH(element);
-//     element.setCoords();
-//     canvas.fire("object:modified", { target: element });
-//   };
+function PropertySidebar() {
+  const [canvas] = useCanvas();
 
-//   const handleViewportVCenter = () => {
-//     if (!canvas) return;
-//     const element = canvas.getActiveObject()!;
-//     canvas.viewportCenterObjectV(element);
-//     element.setCoords();
-//     canvas.fire("object:modified", { target: element });
-//   };
+  const selected = React.useMemo(() => {
+    return canvas.selected.type;
+  }, [canvas.selected]);
 
-//   const handlePropertyChange = (property: ObjectKeys) => (value: string) => {
-//     onTextPropertyChange(property)(parseFloat(value));
-//   };
+  const Sidebar = mapSidebar[selected];
 
-//   const handleDimensionChange = (property: "height" | "width") => (value: string) => {
-//     if (!canvas) return;
-//     const element = canvas.getActiveObject()!;
-//     if (property === "height") {
-//       if (element.type === "textbox") return;
-//       if (element.type === "image") {
-//         const scale = parseFloat(value) / element.height!;
-//         element.set("scaleY", scale);
-//       } else {
-//         element.set("height", parseFloat(value));
-//       }
-//     } else {
-//       if (element.type === "image") {
-//         const scale = parseFloat(value) / element.width!;
-//         element.set("scaleX", scale);
-//       } else {
-//         element.set("width", parseFloat(value));
-//       }
-//     }
-//     canvas.requestRenderAll();
-//   };
+  if (!canvas.instance)
+    return (
+      <Drawer>
+        <Box px="6" py="4">
+          <Text fontSize="sm" fontWeight="medium">
+            Loading...
+          </Text>
+        </Box>
+      </Drawer>
+    );
+
+  return <Sidebar canvas={canvas} />;
+}
+
+export default observer(PropertySidebar);

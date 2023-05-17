@@ -1,3 +1,5 @@
+import { ObjectType } from "@zocket/interfaces/fabric";
+
 export type Template = FabricTemplate | undefined | null;
 
 export interface FabricTemplate {
@@ -8,7 +10,7 @@ export interface FabricTemplate {
 }
 
 export interface TemplateState {
-  type: "textbox" | "image" | "rect";
+  type: ObjectType;
   name: string;
   details: any;
   value: string;
