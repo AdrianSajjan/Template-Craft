@@ -7,8 +7,12 @@ import { ObjectType } from "@zocket/interfaces/fabric";
 
 interface ListItemProps {
   name: string;
-  isUnlocked?: boolean;
   type: ObjectType;
+
+  isLocked?: boolean;
+  isSelected?: boolean;
+
+  onClick?: () => void;
 }
 
 const icons = {
@@ -37,8 +41,9 @@ const Item = chakra(HStack, {
     pr: 1,
     py: 1,
 
-    alignItems: "center",
+    cursor: "pointer",
     borderRadius: "md",
+    alignItems: "center",
 
     _hover: {
       backgroundColor: "gray.200",
@@ -46,7 +51,7 @@ const Item = chakra(HStack, {
   },
 });
 
-const ListItem = observer(({ name, type }: ListItemProps) => {
+const ListItem = observer(({ name, type, isSelected, isLocked, onClick }: ListItemProps) => {
   const [value, setValue] = React.useState(name);
   const [isReadOnly, setReadOnly] = React.useState(true);
 
@@ -66,19 +71,32 @@ const ListItem = observer(({ name, type }: ListItemProps) => {
     setReadOnly(true);
   };
 
-  const backgroundColor = isReadOnly ? "transparent" : "white";
+  const InputIcon = isLocked ? LockIcon : UnlockIcon;
+  const itemColor = isSelected ? "gray.200" : "white";
+  const inputColor = isReadOnly ? "transparent" : "white";
 
   return (
-    <Item>
+    <Item role="button" tabIndex={0} backgroundColor={itemColor} onClick={onClick}>
       <Icon as={icons[type]} fontSize="sm" />
-      <Input size="xs" fontWeight={500} border="none" backgroundColor={backgroundColor} {...{ value, onChange, onBlur, isReadOnly, onDoubleClick, onMouseDown }} />
-      <IconButton size="xs" variant="ghost" aria-label="Lock/Unlock" icon={<Icon as={UnlockIcon} fontSize="sm" />} />
+      <Input size="xs" fontWeight={500} border="none" tabIndex={-1} backgroundColor={inputColor} {...{ value, onChange, onBlur, isReadOnly, onDoubleClick, onMouseDown }} />
+      <IconButton size="xs" variant="ghost" aria-label="Lock/Unlock" icon={<Icon as={InputIcon} fontSize="sm" />} />
     </Item>
   );
 });
 
 function LayerSidebar() {
   const [canvas] = useCanvas();
+
+  const handleClick = (name: string) => () => {
+    if (!canvas.instance) return;
+
+    const objects = canvas.instance.getObjects();
+    const target = objects.find((object) => object.name === name);
+
+    if (!target) return;
+
+    canvas.instance.setActiveObject(target).renderAll();
+  };
 
   if (!canvas.instance)
     return (
@@ -93,17 +111,18 @@ function LayerSidebar() {
 
   return (
     <Drawer>
-      <VStack alignItems="stretch" divider={<StackDivider />} spacing="5" py="5">
-        <Box pl="3" pr="2">
-          <HStack>
+      <VStack alignItems="stretch" divider={<StackDivider />} spacing="5" py="5" overflow="visible">
+        <Box>
+          <HStack pl="2" pr="2">
             <Text fontSize="sm" fontWeight={600}>
               Objects
             </Text>
           </HStack>
-          <List mt="3" spacing="2" height={250} overflowY="scroll">
-            {canvas.objects.map((object) => (
-              <ListItem key={object.name} name={object.name} type={object.type} />
-            ))}
+          <List pt="3" pb="2" px="2" spacing="2" height={250} overflowY="scroll">
+            {canvas.objects.map((object) => {
+              const isSelected = canvas.selected.name === object.name;
+              return <ListItem key={object.name} onClick={handleClick(object.name)} {...{ ...object, isSelected }} />;
+            })}
           </List>
         </Box>
         <Box></Box>

@@ -26,7 +26,6 @@ const Drawer = chakra("aside", {
 });
 
 const CanvasPropertySidebar = observer(({ canvas }: SidebarProps) => {
-  //
   const [width, setWidth] = React.useState(canvas.instance!.width);
   const [height, setHeight] = React.useState(canvas.instance!.height);
 
@@ -139,11 +138,113 @@ const TextPropertySidebar = observer(({ canvas }: SidebarProps) => {
   );
 });
 
+const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
+  const selected = canvas.selected.details;
+
+  return (
+    <Drawer>
+      <VStack alignItems="stretch" spacing="5" py="5" divider={<StackDivider borderColor="gray.200" />}>
+        <Box px="4">
+          <Text fontWeight={700} fontSize="sm">
+            Layout
+          </Text>
+          <Grid templateColumns="80px 1fr" mt="4" alignItems="center">
+            <Text fontSize="xs" fontWeight={500}>
+              Size
+            </Text>
+            <HStack spacing="3">
+              <PropertyInput label="H" value={Math.round(selected.height)} isReadOnly />
+              <PropertyInput label="W" value={selected.width} onChange={(value) => canvas.onTextPropertyChange("width", +value)} />
+            </HStack>
+          </Grid>
+          <Grid templateColumns="80px 1fr" mt="3" alignItems="center">
+            <Text fontSize="xs" fontWeight={500}>
+              Position
+            </Text>
+            <HStack spacing="3">
+              <PropertyInput label="X" value={selected.left} onChange={(value) => canvas.onTextPropertyChange("left", +value)} />
+              <PropertyInput label="Y" value={selected.top} onChange={(value) => canvas.onTextPropertyChange("top", +value)} />
+            </HStack>
+          </Grid>
+          <Grid templateColumns="80px 1fr" mt="3" alignItems="center" display="none">
+            <Text fontSize="xs" fontWeight={500}>
+              Rotation
+            </Text>
+            <HStack spacing="3">
+              <PropertyInput />
+              <ButtonGroup>
+                <IconButton variant="outline" size="xs" aria-label="Increase Rotation" icon={<Icon as={RotateCcwIcon} />} />
+                <IconButton variant="outline" size="xs" aria-label="Decrease Rotation" icon={<Icon as={RotateCwIcon} />} />
+              </ButtonGroup>
+            </HStack>
+          </Grid>
+        </Box>
+        <Box px="4">
+          <Text fontWeight={700} fontSize="sm">
+            Image
+          </Text>
+        </Box>
+      </VStack>
+    </Drawer>
+  );
+});
+
+const RectPropertySidebar = observer(({ canvas }: SidebarProps) => {
+  const selected = canvas.selected.details;
+
+  return (
+    <Drawer>
+      <VStack alignItems="stretch" spacing="5" py="5" divider={<StackDivider borderColor="gray.200" />}>
+        <Box px="4">
+          <Text fontWeight={700} fontSize="sm">
+            Layout
+          </Text>
+          <Grid templateColumns="80px 1fr" mt="4" alignItems="center">
+            <Text fontSize="xs" fontWeight={500}>
+              Size
+            </Text>
+            <HStack spacing="3">
+              <PropertyInput label="H" value={Math.round(selected.height)} isReadOnly />
+              <PropertyInput label="W" value={selected.width} onChange={(value) => canvas.onTextPropertyChange("width", +value)} />
+            </HStack>
+          </Grid>
+          <Grid templateColumns="80px 1fr" mt="3" alignItems="center">
+            <Text fontSize="xs" fontWeight={500}>
+              Position
+            </Text>
+            <HStack spacing="3">
+              <PropertyInput label="X" value={selected.left} onChange={(value) => canvas.onTextPropertyChange("left", +value)} />
+              <PropertyInput label="Y" value={selected.top} onChange={(value) => canvas.onTextPropertyChange("top", +value)} />
+            </HStack>
+          </Grid>
+          <Grid templateColumns="80px 1fr" mt="3" alignItems="center" display="none">
+            <Text fontSize="xs" fontWeight={500}>
+              Rotation
+            </Text>
+            <HStack spacing="3">
+              <PropertyInput />
+              <ButtonGroup>
+                <IconButton variant="outline" size="xs" aria-label="Increase Rotation" icon={<Icon as={RotateCcwIcon} />} />
+                <IconButton variant="outline" size="xs" aria-label="Decrease Rotation" icon={<Icon as={RotateCwIcon} />} />
+              </ButtonGroup>
+            </HStack>
+          </Grid>
+        </Box>
+        <Box px="4">
+          <Text fontWeight={700} fontSize="sm">
+            Rect
+          </Text>
+        </Box>
+      </VStack>
+    </Drawer>
+  );
+});
+
 const mapSidebar = {
   none: CanvasPropertySidebar,
   textbox: TextPropertySidebar,
-  image: TextPropertySidebar,
-  rect: TextPropertySidebar,
+  image: ImagePropertySidebar,
+  rect: RectPropertySidebar,
 };
 
 function PropertySidebar() {
