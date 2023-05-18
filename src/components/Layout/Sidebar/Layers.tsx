@@ -1,19 +1,16 @@
 import * as React from "react";
 import { observer } from "mobx-react-lite";
 import { ImageIcon, LockIcon, TypeIcon, FrameIcon, UnlockIcon } from "lucide-react";
-import { Box, HStack, Icon, IconButton, Input, List, StackDivider, Text, VStack, chakra } from "@chakra-ui/react";
+import { Box, HStack, Icon, IconButton, Input, List, StackDivider, Text, VStack, chakra, useToast } from "@chakra-ui/react";
 
-import { useCanvas } from "@zocket/store/canvas";
+import { Canvas, useCanvas } from "@zocket/store/canvas";
 import { ObjectType } from "@zocket/interfaces/fabric";
+import { nanoid } from "nanoid";
 
 interface ListItemProps {
   name: string;
+  canvas: Canvas;
   type: ObjectType;
-
-  isLocked?: boolean;
-  isSelected?: boolean;
-
-  onClick?: () => void;
 }
 
 const icons = {
@@ -52,9 +49,18 @@ const Item = chakra(HStack, {
   },
 });
 
-const ListItem = observer(({ name, type, isSelected, isLocked, onClick }: ListItemProps) => {
+const ListItem = observer(({ name, type, canvas }: ListItemProps) => {
+  const toast = useToast();
+
   const [value, setValue] = React.useState(name);
   const [isReadOnly, setReadOnly] = React.useState(true);
+
+  const onClick = () => {
+    if (!canvas.instance) return;
+    const target = canvas.instance.getObjects().find((object) => object.name === name);
+    if (!target) return;
+    canvas.instance.setActiveObject(target).renderAll();
+  };
 
   const onChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     setValue(event.target.value);
@@ -70,17 +76,28 @@ const ListItem = observer(({ name, type, isSelected, isLocked, onClick }: ListIt
 
   const onBlur = () => {
     setReadOnly(true);
+
+    if (!canvas.instance) return;
+    const duplicate = name !== value ? canvas.instance.getObjects().some((object) => object.name === value) : false;
+
+    if (duplicate) {
+      setValue(name);
+      toast({ title: "Duplicate name found", description: "Object names should be unique in the tree", variant: "left-accent", status: "info", isClosable: true });
+      return;
+    }
+
+    const index = canvas.instance.getObjects().findIndex((object) => object.name === name);
+    if (index !== -1) canvas.instance.getObjects().at(index)!.name = value;
   };
 
-  const InputIcon = isLocked ? LockIcon : UnlockIcon;
-  const itemColor = isSelected ? "gray.200" : "white";
   const inputColor = isReadOnly ? "transparent" : "white";
+  const itemColor = canvas.selected?.name === name ? "gray.200" : "white";
 
   return (
     <Item role="button" tabIndex={0} backgroundColor={itemColor} onClick={onClick}>
       <Icon as={icons[type]} fontSize="sm" />
       <Input size="xs" fontWeight={500} border="none" tabIndex={-1} backgroundColor={inputColor} {...{ value, onChange, onBlur, isReadOnly, onDoubleClick, onMouseDown }} />
-      <IconButton size="xs" variant="ghost" aria-label="Lock/Unlock" icon={<Icon as={InputIcon} fontSize="sm" />} />
+      <IconButton size="xs" variant="ghost" aria-label="Lock/Unlock" icon={<Icon as={UnlockIcon} fontSize="sm" />} />
     </Item>
   );
 });
@@ -88,27 +105,7 @@ const ListItem = observer(({ name, type, isSelected, isLocked, onClick }: ListIt
 function LayerSidebar() {
   const [canvas] = useCanvas();
 
-  const handleClick = (name: string) => () => {
-    if (!canvas.instance) return;
-
-    const objects = canvas.instance.getObjects();
-    const target = objects.find((object) => object.name === name);
-
-    if (!target) return;
-
-    canvas.instance.setActiveObject(target).renderAll();
-  };
-
-  if (!canvas.instance)
-    return (
-      <Drawer>
-        <Box px="6" py="4">
-          <Text fontSize="sm" fontWeight="medium">
-            Loading...
-          </Text>
-        </Box>
-      </Drawer>
-    );
+  if (!canvas.instance) return <Drawer />;
 
   return (
     <Drawer>
@@ -120,10 +117,9 @@ function LayerSidebar() {
             </Text>
           </HStack>
           <List pt="4" pb="2" px="2" spacing="2" height={250} overflowY="scroll">
-            {canvas.objects.map((object) => {
-              const isSelected = canvas.selected.name === object.name;
-              return <ListItem key={object.name} onClick={handleClick(object.name)} {...{ ...object, isSelected }} />;
-            })}
+            {canvas.objects.map((object) => (
+              <ListItem key={object.name} canvas={canvas} {...object} />
+            ))}
           </List>
         </Box>
         <Box></Box>

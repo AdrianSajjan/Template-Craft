@@ -1,6 +1,8 @@
 export type CanvasMouseEvent = fabric.IEvent<MouseEvent>;
 
-export type Clipboard = fabric.Object | null;
+export type Clipboard = Required<fabric.Object> | null;
+
+export type Selected = Required<fabric.Object> | null;
 
 export type ObjectType = "textbox" | "image" | "rect";
 
@@ -14,15 +16,7 @@ export interface CanvasState {
   background?: string;
 }
 
-export interface SelectedState {
-  name: string;
-  details: any;
-  status: boolean;
-  type: ObjectType | "none";
-}
-
 export interface SceneObject {
   name: string;
   type: ObjectType;
-  isLocked: boolean;
 }

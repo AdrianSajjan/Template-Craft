@@ -11,7 +11,7 @@ export class TemplateStore {
   canvas: Canvas;
 
   active: Optional<Template>;
-  status: Status = "uninitialized";
+  status: Status;
 
   get isLoading() {
     return this.status === "pending";
@@ -20,6 +20,7 @@ export class TemplateStore {
   constructor(canvas: Canvas) {
     makeAutoObservable(this);
     this.canvas = canvas;
+    this.status = "uninitialized";
   }
 
   onInitializeCanvas(canvas: Canvas) {

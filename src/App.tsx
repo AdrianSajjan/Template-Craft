@@ -13,11 +13,10 @@ import { LayerSidebar, PropertySidebar } from "@zocket/components/Layout/Sidebar
 import { useCanvas } from "@zocket/store/canvas";
 import { originalHeight, originalWidth } from "@zocket/config/app";
 import { useTemplate } from "@zocket/store/template";
+import { useZoom } from "@zocket/hooks/useZoom";
 
 const MainContainer = chakra(Box, {
   baseStyle: {
-    position: "relative",
-
     p: 5,
     maxHeight: "calc(100vh - 60px)",
 
@@ -26,6 +25,28 @@ const MainContainer = chakra(Box, {
 
     display: "grid",
     placeItems: "center",
+  },
+});
+
+const ZoomContainer = chakra(ButtonGroup, {
+  baseStyle: {
+    bottom: 25,
+    right: 350,
+
+    opacity: 0.5,
+    position: "fixed",
+
+    _hover: {
+      opacity: 1,
+    },
+  },
+});
+
+const ZoomButton = chakra(IconButton, {
+  baseStyle: {
+    color: "black",
+    colorScheme: "whiteAlpha",
+    backgroundColor: "white",
   },
 });
 
@@ -55,18 +76,20 @@ const Layout = styled.div`
 `;
 
 function App() {
-  const [zoom] = useState(0.4);
-
   const template = useTemplate();
   const [canvas, ref] = useCanvas();
+
+  const { zoom, canZoomIn, canZoomOut, onZoomIn, onZoomOut, onResetZoom } = useZoom({ zoom: 0.5 });
 
   const dimensions = useMemo(() => {
     return {
       transform: `scale(${zoom})`,
-      height: originalHeight * zoom,
-      width: originalWidth * zoom,
+      width: (canvas.dimensions.width || originalWidth) * zoom,
+      height: (canvas.dimensions.height || originalHeight) * zoom,
     };
-  }, [zoom]);
+  }, [zoom, canvas.dimensions]);
+
+  const property_key = canvas.selected?.name ?? template.active?.key;
 
   return (
     <Box display="flex">
@@ -80,17 +103,17 @@ function App() {
                 <canvas ref={ref} id="canvas" />
               </CanvasContainer>
             </Box>
-            <ButtonGroup bottom="6" right="8" position="absolute" isAttached size="sm" opacity={0.5} _hover={{ opacity: 1 }}>
-              <IconButton aria-label="Zoom In" colorScheme="whiteAlpha" backgroundColor="white" color="black" icon={<Icon as={ZoomInIcon} fontSize="md" />} />
-              <IconButton aria-label="Zoom Out" colorScheme="whiteAlpha" backgroundColor="white" color="black" icon={<Icon as={ZoomOutIcon} fontSize="md" />} />
-              <Button fontSize="xs" colorScheme="whiteAlpha" backgroundColor="white" color="black">
-                Reset
-              </Button>
-            </ButtonGroup>
           </MainContainer>
-          <PropertySidebar key={canvas.selected.name} />
+          <PropertySidebar key={property_key} />
         </Main>
       </Layout>
+      <ZoomContainer isAttached size="md">
+        <ZoomButton aria-label="Zoom Out" isDisabled={!canZoomOut} onClick={onZoomOut} icon={<Icon as={ZoomOutIcon} fontSize="lg" />} />
+        <ZoomButton aria-label="Zoom In" isDisabled={!canZoomIn} onClick={onZoomIn} icon={<Icon as={ZoomInIcon} fontSize="lg" />} />
+        <ZoomButton as={Button} fontSize="sm" onClick={onResetZoom}>
+          Reset
+        </ZoomButton>
+      </ZoomContainer>
       <ActivityIndicator isLoading={template.isLoading} />
     </Box>
   );

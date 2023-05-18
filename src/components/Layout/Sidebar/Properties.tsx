@@ -1,3 +1,4 @@
+import { fabric as fabricJS } from "fabric";
 import { Box, Button, ButtonGroup, Grid, HStack, Icon, IconButton, StackDivider, Text, Textarea, VStack, chakra } from "@chakra-ui/react";
 import { observer } from "mobx-react-lite";
 import * as React from "react";
@@ -6,6 +7,8 @@ import { ColorPicker, PropertyInput } from "@zocket/components/Input";
 import { Canvas, useCanvas } from "@zocket/store/canvas";
 import { RotateCcwIcon } from "lucide-react";
 import { RotateCwIcon } from "lucide-react";
+import { ObjectType } from "@zocket/interfaces/fabric";
+import { toFixed } from "@zocket/lib/utils";
 
 interface SidebarProps {
   canvas: Canvas;
@@ -87,7 +90,7 @@ const CanvasPropertySidebar = observer(({ canvas }: SidebarProps) => {
 });
 
 const TextPropertySidebar = observer(({ canvas }: SidebarProps) => {
-  const selected = canvas.selected.details;
+  const selected = canvas.selected! as Required<fabricJS.Textbox>;
 
   return (
     <Drawer>
@@ -101,8 +104,8 @@ const TextPropertySidebar = observer(({ canvas }: SidebarProps) => {
               Size
             </Text>
             <HStack spacing="3">
-              <PropertyInput label="H" value={Math.round(selected.height)} isReadOnly />
-              <PropertyInput label="W" value={selected.width} onChange={(value) => canvas.onTextPropertyChange("width", +value)} />
+              <PropertyInput label="H" value={toFixed(selected.height)} isReadOnly />
+              <PropertyInput label="W" value={toFixed(selected.width)} onChange={(_, value) => canvas.onTextPropertyChange("width", value)} />
             </HStack>
           </Grid>
           <Grid templateColumns="80px 1fr" mt="3" alignItems="center">
@@ -110,8 +113,8 @@ const TextPropertySidebar = observer(({ canvas }: SidebarProps) => {
               Position
             </Text>
             <HStack spacing="3">
-              <PropertyInput label="X" value={selected.left} onChange={(value) => canvas.onTextPropertyChange("left", +value)} />
-              <PropertyInput label="Y" value={selected.top} onChange={(value) => canvas.onTextPropertyChange("top", +value)} />
+              <PropertyInput label="X" value={toFixed(selected.left)} onChange={(_, value) => canvas.onTextPropertyChange("left", value)} />
+              <PropertyInput label="Y" value={toFixed(selected.top)} onChange={(_, value) => canvas.onTextPropertyChange("top", value)} />
             </HStack>
           </Grid>
           <Grid templateColumns="80px 1fr" mt="3" alignItems="center" display="none">
@@ -139,7 +142,7 @@ const TextPropertySidebar = observer(({ canvas }: SidebarProps) => {
 });
 
 const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
-  const selected = canvas.selected.details;
+  const selected = canvas.selected! as Required<fabricJS.Image>;
 
   return (
     <Drawer>
@@ -153,7 +156,7 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
               Size
             </Text>
             <HStack spacing="3">
-              <PropertyInput label="H" value={Math.round(selected.height)} isReadOnly />
+              <PropertyInput label="H" value={selected.height} isReadOnly />
               <PropertyInput label="W" value={selected.width} onChange={(value) => canvas.onTextPropertyChange("width", +value)} />
             </HStack>
           </Grid>
@@ -190,7 +193,7 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
 });
 
 const RectPropertySidebar = observer(({ canvas }: SidebarProps) => {
-  const selected = canvas.selected.details;
+  const selected = canvas.selected! as Required<fabricJS.Rect>;
 
   return (
     <Drawer>
@@ -204,7 +207,7 @@ const RectPropertySidebar = observer(({ canvas }: SidebarProps) => {
               Size
             </Text>
             <HStack spacing="3">
-              <PropertyInput label="H" value={Math.round(selected.height)} isReadOnly />
+              <PropertyInput label="H" value={selected.height} isReadOnly />
               <PropertyInput label="W" value={selected.width} onChange={(value) => canvas.onTextPropertyChange("width", +value)} />
             </HStack>
           </Grid>
@@ -251,21 +254,12 @@ function PropertySidebar() {
   const [canvas] = useCanvas();
 
   const selected = React.useMemo(() => {
-    return canvas.selected.type;
+    return (canvas.selected ? canvas.selected.type! : "none") as ObjectType;
   }, [canvas.selected]);
 
   const Sidebar = mapSidebar[selected];
 
-  if (!canvas.instance)
-    return (
-      <Drawer>
-        <Box px="6" py="4">
-          <Text fontSize="sm" fontWeight="medium">
-            Loading...
-          </Text>
-        </Box>
-      </Drawer>
-    );
+  if (!canvas.instance) return <Drawer />;
 
   return <Sidebar canvas={canvas} />;
 }

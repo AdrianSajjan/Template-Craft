@@ -1,4 +1,3 @@
-import { nanoid } from "nanoid";
 import { makeAutoObservable } from "mobx";
 import { fabric as fabricJS } from "fabric";
 import { createContext, useCallback, useContext, useEffect } from "react";
@@ -7,27 +6,34 @@ import { createFactory } from "@zocket/lib/utils";
 import { FontFaceResponse, addFontFace } from "@zocket/lib/fonts";
 
 import { toast } from "@zocket/config/theme";
+import { objectID } from "@zocket/lib/nanoid";
 import { defaultFont, defaultFontSize } from "@zocket/config/fonts";
 import { exportedProps, maxUndoRedoSteps, originalHeight, originalWidth } from "@zocket/config/app";
 
-import { Clipboard, CanvasMouseEvent, ObjectType, SelectedState, CanvasState, TextboxKeys, SceneObject } from "@zocket/interfaces/fabric";
+import { Clipboard, CanvasMouseEvent, CanvasState, TextboxKeys, SceneObject, Selected } from "@zocket/interfaces/fabric";
 import { Template } from "@zocket/interfaces/template";
 import { Optional } from "@zocket/interfaces/core";
+
+type Dimensions = { height?: number; width?: number };
 
 export class Canvas {
   instance: Optional<fabricJS.Canvas>;
 
-  objects: SceneObject[] = [];
-  selected: SelectedState = { status: false, type: "none", name: "", details: null };
+  objects: SceneObject[];
 
+  selected: Optional<Selected>;
   clipboard: Optional<Clipboard>;
-  actionsEnabled: boolean = true;
 
-  private undoStack: CanvasState[] = [];
-  private redoStack: CanvasState[] = [];
+  width: number;
+  height: number;
 
-  constructor() {
-    makeAutoObservable(this);
+  actionsEnabled: boolean;
+
+  private undoStack: CanvasState[];
+  private redoStack: CanvasState[];
+
+  get dimensions() {
+    return { height: this.height, width: this.width };
   }
 
   get canUndo() {
@@ -38,8 +44,62 @@ export class Canvas {
     return this.actionsEnabled && this.redoStack.length > 0;
   }
 
+  constructor() {
+    makeAutoObservable(this);
+
+    this.objects = [];
+    this.actionsEnabled = true;
+
+    this.undoStack = [];
+    this.redoStack = [];
+
+    this.width = 0;
+    this.height = 0;
+  }
+
+  private *onLoadFromJSON(state: CanvasState) {
+    if (!this.instance) return;
+
+    const active = this.selected ? this.selected.name : false;
+
+    this.instance.clear();
+
+    yield createFactory(Promise, (resolve) => this.instance!.loadFromJSON(state, resolve));
+
+    if (active) {
+      const elements = this.instance!.getObjects();
+      for (const element of elements) {
+        if (element.name === active) {
+          this.instance!.setActiveObject(element);
+          break;
+        }
+      }
+    }
+
+    this.onUpdateObjects();
+
+    this.actionsEnabled = true;
+    this.instance!.renderAll();
+  }
+
+  private onUpdateObjects() {
+    if (!this.instance) return;
+    const objects = this.instance.getObjects();
+    this.objects = objects.map((object) => object.toObject(exportedProps)).map((object) => ({ name: object.name, type: object.type }));
+    this.selected = this.instance.getActiveObject()?.toObject(exportedProps);
+  }
+
+  private onUpdateDimensions() {
+    if (!this.instance) return;
+    this.width = this.instance.width!;
+    this.height = this.instance.height!;
+  }
+
   onInitialize(canvas: fabricJS.Canvas) {
     this.instance = canvas;
+
+    this.height = canvas.height!;
+    this.width = canvas.width!;
   }
 
   *onLoadFromTemplate(template: Template) {
@@ -53,6 +113,7 @@ export class Canvas {
     this.undoStack = [];
 
     this.onChangeBackground(template);
+    this.onChangeDimensions({ height: template.height, width: template.width });
 
     for (const element of template.state) {
       switch (element.type) {
@@ -71,9 +132,9 @@ export class Canvas {
           this.instance.add(image);
           break;
       }
-
-      this.objects.push({ name: element.name, type: element.type, isLocked: false });
     }
+
+    this.onUpdateObjects();
 
     this.instance.fire("object:modified", { target: null });
     this.instance.requestRenderAll();
@@ -95,11 +156,13 @@ export class Canvas {
     }
   }
 
-  onChangeDimensions({ height, width }: { height?: number | string; width?: number | string }) {
+  onChangeDimensions({ height, width }: Dimensions) {
     if (!this.instance) return;
-    if (width) this.instance.setWidth(width);
-    if (height) this.instance.setHeight(height);
-    this.instance.requestRenderAll();
+
+    if (width) this.instance.setWidth(+width).renderAll();
+    if (height) this.instance.setHeight(+height).renderAll();
+
+    this.onUpdateDimensions();
   }
 
   *onUndo() {
@@ -132,17 +195,12 @@ export class Canvas {
   }
 
   onSelect(event: CanvasMouseEvent) {
-    const element = event.selected!.at(0)!;
-    this.selected = { status: true, type: element.type! as ObjectType, name: element.name!, details: element.toObject(exportedProps) };
+    const element = event.selected!.at(0);
+    this.selected = element?.toObject(exportedProps);
   }
 
   onDeselect() {
-    this.selected = { status: false, type: "none", name: "", details: null };
-  }
-
-  onDuplicate() {
-    this.onCopy();
-    this.onPaste();
+    this.selected = null;
   }
 
   onSave(_: CanvasMouseEvent) {
@@ -150,11 +208,11 @@ export class Canvas {
 
     this.redoStack = [];
 
-    const state = this.instance.toJSON(exportedProps);
+    const state = this.instance.toObject(exportedProps);
     const element = this.instance.getActiveObject();
 
     if (element) {
-      this.selected.details = element.toObject(exportedProps);
+      this.selected = element.toObject(exportedProps);
     }
 
     if (this.undoStack.length < maxUndoRedoSteps) {
@@ -177,34 +235,34 @@ export class Canvas {
     this.instance.renderAll();
   }
 
-  onCopy() {
+  *onCopy() {
     if (!this.instance) return;
 
     const element = this.instance.getActiveObject();
     if (!element) return;
 
-    element.clone((clone: fabricJS.Object) => {
-      this.clipboard = clone;
-    }, exportedProps);
+    const clone: Required<fabricJS.Object> = yield createFactory(Promise, (resolve) => element.clone((clone) => resolve(clone), exportedProps));
+    this.clipboard = clone;
   }
 
-  onPaste() {
+  *onPaste() {
     if (!this.instance || !this.clipboard) return;
-    this.clipboard.clone((clone: fabricJS.Object) => {
-      this.instance!.discardActiveObject();
 
-      clone.set({ name: `frame_${nanoid(3)}`, left: clone.left! + 10, top: clone.top! + 10, evented: true });
-      clone.setCoords();
+    const clone: fabricJS.Object = yield createFactory(Promise, (resolve) => this.clipboard!.clone((clone) => resolve(clone), exportedProps));
 
-      this.instance!.add(clone);
-      this.instance!.setActiveObject(clone);
+    clone.set({ name: objectID(clone.name!), left: clone.left! + 10, top: clone.top! + 10, evented: true });
+    clone.setCoords();
 
-      this.instance!.fire("object:modified", { target: clone });
-      this.instance!.requestRenderAll();
+    this.clipboard.left! += 10;
+    this.clipboard.top! += 10;
 
-      this.clipboard!.left! += 10;
-      this.clipboard!.top! += 10;
-    }, exportedProps);
+    this.instance.add(clone);
+    this.instance.setActiveObject(clone).fire("object:modified", { target: clone }).renderAll();
+  }
+
+  *onDuplicate() {
+    yield this.onCopy();
+    yield this.onPaste();
   }
 
   onDelete() {
@@ -214,8 +272,9 @@ export class Canvas {
     if (!element) return;
 
     this.instance.remove(element);
-    this.instance.fire("object:modified", { target: null });
-    this.instance.requestRenderAll();
+    this.instance.fire("object:modified", { target: null }).renderAll();
+
+    this.onUpdateObjects();
   }
 
   *onFontFamilyChange(fontFamily = defaultFont) {
@@ -227,8 +286,6 @@ export class Canvas {
     const text = this.instance.getActiveObject() as fabricJS.Textbox;
     text.set("fontFamily", response.name);
 
-    this.selected.details = text.toObject(exportedProps);
-
     this.instance.fire("object:modified", { target: text }).renderAll();
   }
 
@@ -236,10 +293,9 @@ export class Canvas {
     if (!this.instance) return;
 
     const text = this.instance.getActiveObject() as fabricJS.Textbox;
-
     text.set(property, value);
 
-    this.selected.details = text.toObject(exportedProps);
+    this.selected = text.toObject(exportedProps);
     this.instance.fire("object:modified", { target: text }).renderAll();
   }
 
@@ -249,7 +305,7 @@ export class Canvas {
     const response: FontFaceResponse = yield addFontFace(defaultFont);
     if (response.error) toast({ title: "Warning", description: response.error, variant: "left-accent", status: "warning", isClosable: true });
 
-    const textbox = createFactory(fabricJS.Textbox, text, { name: `text_${nanoid(3)}`, fontFamily: response.name, fill, fontSize });
+    const textbox = createFactory(fabricJS.Textbox, text, { name: objectID("text"), fontFamily: response.name, fill, fontSize });
 
     this.instance.add(textbox);
     this.instance.viewportCenterObject(textbox);
@@ -262,7 +318,7 @@ export class Canvas {
     if (!this.instance) return;
 
     const image: fabricJS.Image = yield createFactory(Promise, (resolve) => {
-      fabricJS.Image.fromURL(source, (image) => resolve(image), { name: `image_${nanoid(3)}`, objectCaching: true });
+      fabricJS.Image.fromURL(source, (image) => resolve(image), { name: objectID("image"), objectCaching: true });
     });
 
     image.scaleToHeight(height);
@@ -274,29 +330,6 @@ export class Canvas {
 
     this.instance!.fire("object:modified", { target: image });
     this.instance!.requestRenderAll();
-  }
-
-  *onLoadFromJSON(state: CanvasState) {
-    if (!this.instance) return;
-
-    const active = this.selected.status ? this.selected.name : false;
-
-    this.instance.clear();
-
-    yield createFactory(Promise, (resolve) => this.instance!.loadFromJSON(state, resolve));
-
-    if (active) {
-      const elements = this.instance!.getObjects();
-      for (const element of elements) {
-        if (element.name === active) {
-          this.instance!.setActiveObject(element);
-          break;
-        }
-      }
-    }
-
-    this.actionsEnabled = true;
-    this.instance!.renderAll();
   }
 }
 

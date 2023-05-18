@@ -1,4 +1,5 @@
 import * as React from "react";
+import { nanoid } from "nanoid";
 import { flowResult } from "mobx";
 import { observer } from "mobx-react-lite";
 import { Box, Button, ButtonGroup, HStack, Icon, StackDivider, Text, chakra } from "@chakra-ui/react";
@@ -41,7 +42,7 @@ function Header({}: HeaderProps) {
 
   const onUploadPSDFile = async () => {
     const selected = templates.at(0)!;
-    await flowResult(template.onInitializeTemplate(selected));
+    await flowResult(template.onInitializeTemplate({ ...selected, key: nanoid() }));
   };
 
   return (

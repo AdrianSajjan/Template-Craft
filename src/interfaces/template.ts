@@ -1,9 +1,12 @@
 import { ObjectType } from "@zocket/interfaces/fabric";
 
 export interface Template {
-  index: string;
+  id: string;
+  key?: string;
   source: string;
   background: "image" | "color";
+  height: number;
+  width: number;
   state: Array<TemplateState>;
 }
 

@@ -3,4 +3,4 @@ export const originalHeight = 1080;
 
 export const maxUndoRedoSteps = 5;
 
-export const exportedProps = ["name", "_anim"];
+export const exportedProps = ["name", "height", "width"];
