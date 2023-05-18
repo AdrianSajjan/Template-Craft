@@ -12,14 +12,15 @@ import { exportedProps, maxUndoRedoSteps, originalHeight, originalWidth } from "
 
 import { Clipboard, CanvasMouseEvent, ObjectType, SelectedState, CanvasState, TextboxKeys, SceneObject } from "@zocket/interfaces/fabric";
 import { Template } from "@zocket/interfaces/template";
+import { Optional } from "@zocket/interfaces/core";
 
 export class Canvas {
-  instance: fabricJS.Canvas | null = null;
+  instance: Optional<fabricJS.Canvas>;
 
   objects: SceneObject[] = [];
   selected: SelectedState = { status: false, type: "none", name: "", details: null };
 
-  clipboard: Clipboard = null;
+  clipboard: Optional<Clipboard>;
   actionsEnabled: boolean = true;
 
   private undoStack: CanvasState[] = [];
@@ -304,9 +305,11 @@ CanvasContext.displayName = "CanvasContext";
 
 export const CanvasProvider = CanvasContext.Provider;
 
-type ResolveCallback = (canvas: Canvas) => void;
+type UseCanvasProps = { onInitialize?: (canvas: Canvas) => void };
 
-export function useCanvas() {
+const options = { width: originalWidth, height: originalHeight, preserveObjectStacking: true, backgroundColor: "#FFFFFF", selection: false };
+
+export function useCanvas(props?: UseCanvasProps) {
   const canvas = useContext(CanvasContext);
 
   if (!canvas) throw new Error("Please wrap your components in Canvas Provider");
@@ -315,9 +318,9 @@ export function useCanvas() {
     if (!element) {
       canvas.instance?.dispose();
     } else {
-      const options = { width: originalWidth, height: originalHeight, preserveObjectStacking: true, backgroundColor: "#FFFFFF", selection: false };
       const fabric = createFactory(fabricJS.Canvas, element, options);
       canvas.onInitialize(fabric);
+      props?.onInitialize?.(canvas);
     }
   }, []);
 

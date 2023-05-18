@@ -6,6 +6,7 @@ import { TypeIcon, ImageIcon, BoxIcon, TrashIcon, UndoIcon, RedoIcon, FrameIcon,
 
 import { useCanvas } from "@zocket/store/canvas";
 import { templates } from "@zocket/mock/templates";
+import { useTemplate } from "@zocket/store/template";
 
 interface HeaderProps {}
 
@@ -36,10 +37,11 @@ const Action = chakra(Button, {
 
 function Header({}: HeaderProps) {
   const [canvas] = useCanvas();
+  const template = useTemplate();
 
   const onUploadPSDFile = async () => {
     const selected = templates.at(0)!;
-    await flowResult(canvas.onLoadFromTemplate(selected));
+    await flowResult(template.onInitializeTemplate(selected));
   };
 
   return (

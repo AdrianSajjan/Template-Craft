@@ -22,3 +22,20 @@ export const templates: Array<Template> = [
     ],
   },
 ];
+
+// const onOpenImageExplorer = () => {
+//   if (!image.current) return;
+//   image.current.click();
+// };
+
+// const onFileInputClick = (event: React.MouseEvent<HTMLInputElement, MouseEvent>) => {
+//   const element = event.target as HTMLInputElement;
+//   element.value = "";
+// };
+
+// const handleImageInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+//   if (!event.target.files) return;
+//   const file = event.target.files[0];
+//   const url = URL.createObjectURL(file);
+//   // onAddImage(url);
+// };

@@ -4,7 +4,7 @@ import styled from "@emotion/styled";
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { ZoomInIcon, ZoomOutIcon } from "lucide-react";
-import { Box, Button, ButtonGroup, Icon, IconButton, chakra } from "@chakra-ui/react";
+import { Box, Button, ButtonGroup, CircularProgress, Icon, IconButton, chakra } from "@chakra-ui/react";
 
 import { Main } from "@zocket/components/Layout/Main";
 import { Header } from "@zocket/components/Layout/Header";
@@ -12,7 +12,7 @@ import { LayerSidebar, PropertySidebar } from "@zocket/components/Layout/Sidebar
 
 import { useCanvas } from "@zocket/store/canvas";
 import { originalHeight, originalWidth } from "@zocket/config/app";
-import { toJS } from "mobx";
+import { useTemplate } from "@zocket/store/template";
 
 const MainContainer = chakra(Box, {
   baseStyle: {
@@ -27,6 +27,15 @@ const MainContainer = chakra(Box, {
     display: "grid",
     placeItems: "center",
   },
+});
+
+const ActivityIndicator = chakra(({ isLoading }: { isLoading: boolean }) => {
+  if (!isLoading) return null;
+  return (
+    <Box display="grid" placeItems="center" zIndex={100} inset="0" position="fixed" backgroundColor="gray.200">
+      <CircularProgress isIndeterminate color="black" />
+    </Box>
+  );
 });
 
 const CanvasContainer = styled(Box)`
@@ -48,6 +57,7 @@ const Layout = styled.div`
 function App() {
   const [zoom] = useState(0.4);
 
+  const template = useTemplate();
   const [canvas, ref] = useCanvas();
 
   const dimensions = useMemo(() => {
@@ -81,25 +91,9 @@ function App() {
           <PropertySidebar key={canvas.selected.name} />
         </Main>
       </Layout>
+      <ActivityIndicator isLoading={template.isLoading} />
     </Box>
   );
 }
 
 export default observer(App);
-
-// const onOpenImageExplorer = () => {
-//   if (!image.current) return;
-//   image.current.click();
-// };
-
-// const onFileInputClick = (event: React.MouseEvent<HTMLInputElement, MouseEvent>) => {
-//   const element = event.target as HTMLInputElement;
-//   element.value = "";
-// };
-
-// const handleImageInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-//   if (!event.target.files) return;
-//   const file = event.target.files[0];
-//   const url = URL.createObjectURL(file);
-//   // onAddImage(url);
-// };
