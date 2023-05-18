@@ -3,6 +3,7 @@ import "@zocket/config/fabric";
 import styled from "@emotion/styled";
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react-lite";
+import { ZoomInIcon, ZoomOutIcon } from "lucide-react";
 import { Box, Button, ButtonGroup, Icon, IconButton, chakra } from "@chakra-ui/react";
 
 import { Main } from "@zocket/components/Layout/Main";
@@ -11,7 +12,7 @@ import { LayerSidebar, PropertySidebar } from "@zocket/components/Layout/Sidebar
 
 import { useCanvas } from "@zocket/store/canvas";
 import { originalHeight, originalWidth } from "@zocket/config/app";
-import { ZoomInIcon, ZoomOutIcon } from "lucide-react";
+import { toJS } from "mobx";
 
 const MainContainer = chakra(Box, {
   baseStyle: {

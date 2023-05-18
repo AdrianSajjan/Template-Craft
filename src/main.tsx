@@ -4,6 +4,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 
 import { createFactory } from "@zocket/lib/utils";
 import { ToastContainer, theme } from "@zocket/config/theme";
+
 import { Canvas, CanvasProvider } from "@zocket/store/canvas";
 
 import App from "@zocket/App";

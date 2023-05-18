@@ -1,7 +1,8 @@
 import * as React from "react";
+import { observer } from "mobx-react-lite";
 import { ImageIcon, LockIcon, TypeIcon, FrameIcon, UnlockIcon } from "lucide-react";
 import { Box, HStack, Icon, IconButton, Input, List, StackDivider, Text, VStack, chakra } from "@chakra-ui/react";
-import { observer } from "mobx-react-lite";
+
 import { useCanvas } from "@zocket/store/canvas";
 import { ObjectType } from "@zocket/interfaces/fabric";
 
@@ -113,12 +114,12 @@ function LayerSidebar() {
     <Drawer>
       <VStack alignItems="stretch" divider={<StackDivider />} spacing="5" py="5" overflow="visible">
         <Box>
-          <HStack pl="2" pr="2">
+          <HStack pl="3" pr="2">
             <Text fontSize="sm" fontWeight={600}>
               Objects
             </Text>
           </HStack>
-          <List pt="3" pb="2" px="2" spacing="2" height={250} overflowY="scroll">
+          <List pt="4" pb="2" px="2" spacing="2" height={250} overflowY="scroll">
             {canvas.objects.map((object) => {
               const isSelected = canvas.selected.name === object.name;
               return <ListItem key={object.name} onClick={handleClick(object.name)} {...{ ...object, isSelected }} />;

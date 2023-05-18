@@ -1,9 +1,11 @@
+import * as React from "react";
+import { flowResult } from "mobx";
 import { observer } from "mobx-react-lite";
 import { Box, Button, ButtonGroup, HStack, Icon, StackDivider, Text, chakra } from "@chakra-ui/react";
 import { TypeIcon, ImageIcon, BoxIcon, TrashIcon, UndoIcon, RedoIcon, FrameIcon, CopyIcon } from "lucide-react";
+
 import { useCanvas } from "@zocket/store/canvas";
 import { templates } from "@zocket/mock/templates";
-import { flowResult } from "mobx";
 
 interface HeaderProps {}
 
@@ -36,8 +38,8 @@ function Header({}: HeaderProps) {
   const [canvas] = useCanvas();
 
   const onUploadPSDFile = async () => {
-    const template = templates.at(0)!;
-    await flowResult(canvas.onLoadFromTemplate(template));
+    const selected = templates.at(0)!;
+    await flowResult(canvas.onLoadFromTemplate(selected));
   };
 
   return (

@@ -1,7 +1,7 @@
-import { FabricTemplate } from "@zocket/interfaces/app";
+import { Template } from "@zocket/interfaces/template";
 import { nanoid } from "nanoid";
 
-export const templates: Array<FabricTemplate> = [
+export const templates: Array<Template> = [
   {
     index: "1",
     source: "#FFFFFF",

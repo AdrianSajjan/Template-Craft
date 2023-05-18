@@ -10,8 +10,8 @@ import { toast } from "@zocket/config/theme";
 import { defaultFont, defaultFontSize } from "@zocket/config/fonts";
 import { exportedProps, maxUndoRedoSteps, originalHeight, originalWidth } from "@zocket/config/app";
 
-import { FabricTemplate } from "@zocket/interfaces/app";
 import { Clipboard, CanvasMouseEvent, ObjectType, SelectedState, CanvasState, TextboxKeys, SceneObject } from "@zocket/interfaces/fabric";
+import { Template } from "@zocket/interfaces/template";
 
 export class Canvas {
   instance: fabricJS.Canvas | null = null;
@@ -41,11 +41,13 @@ export class Canvas {
     this.instance = canvas;
   }
 
-  *onLoadFromTemplate(template: FabricTemplate) {
+  *onLoadFromTemplate(template: Template) {
     if (!this.instance) return;
 
+    this.instance.clearContext(this.instance.getContext());
     this.instance.clear();
 
+    this.objects = [];
     this.redoStack = [];
     this.undoStack = [];
 
@@ -53,23 +55,20 @@ export class Canvas {
 
     for (const element of template.state) {
       switch (element.type) {
-        case "textbox": {
+        case "textbox":
           const response: FontFaceResponse = yield addFontFace(element.details.fontFamily || defaultFont);
           if (response.error) toast({ title: "Warning", description: response.error, variant: "left-accent", status: "warning", isClosable: true });
 
           const textbox = createFactory(fabricJS.Textbox, element.value, { ...element.details, name: element.name, fontFamily: response.name });
           this.instance.add(textbox);
-
           break;
-        }
 
-        case "image": {
+        case "image":
           const image: fabricJS.Image = yield createFactory(Promise, (resolve) => {
             fabricJS.Image.fromURL(element.value, (image) => resolve(image), { ...element.details, name: element.name, objectCaching: true });
           });
           this.instance.add(image);
           break;
-        }
       }
 
       this.objects.push({ name: element.name, type: element.type, isLocked: false });
@@ -79,7 +78,7 @@ export class Canvas {
     this.instance.requestRenderAll();
   }
 
-  onChangeBackground(template: Pick<FabricTemplate, "background" | "source">) {
+  onChangeBackground(template: Pick<Template, "background" | "source">) {
     if (!this.instance) return;
 
     switch (template.background) {
@@ -301,10 +300,11 @@ export class Canvas {
 }
 
 export const CanvasContext = createContext<Canvas | undefined>(undefined);
-
 CanvasContext.displayName = "CanvasContext";
 
 export const CanvasProvider = CanvasContext.Provider;
+
+type ResolveCallback = (canvas: Canvas) => void;
 
 export function useCanvas() {
   const canvas = useContext(CanvasContext);
