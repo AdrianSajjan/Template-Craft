@@ -6,8 +6,12 @@ import { Box, Button, ButtonGroup, HStack, Icon, StackDivider, Text, chakra } fr
 import { TypeIcon, ImageIcon, BoxIcon, TrashIcon, UndoIcon, RedoIcon, FrameIcon, CopyIcon } from "lucide-react";
 
 import { useCanvas } from "@zocket/store/canvas";
-import { templates } from "@zocket/mock/templates";
 import { useTemplate } from "@zocket/store/template";
+
+import { BringToFront } from "@zocket/components/Icons/Front";
+import { SendToBackIcon } from "@zocket/components/Icons/Back";
+
+import { templates } from "@zocket/mock/templates";
 
 interface HeaderProps {}
 
@@ -52,25 +56,25 @@ function Header({}: HeaderProps) {
       </Button>
       <HStack spacing="2.5" divider={<StackDivider borderColor="gray.200" />}>
         <ButtonGroup spacing="0.5">
-          <Action variant="ghost" isDisabled>
+          <Action variant="ghost">
             <Icon as={FrameIcon} fontSize={20} />
             <Text fontSize="xs" mt="2">
               Frame
             </Text>
           </Action>
-          <Action variant="ghost" isDisabled>
+          <Action variant="ghost">
             <Icon as={TypeIcon} fontSize={20} />
             <Text fontSize="xs" mt="2">
               Text
             </Text>
           </Action>
-          <Action variant="ghost" isDisabled>
+          <Action variant="ghost">
             <Icon as={ImageIcon} fontSize={20} />
             <Text fontSize="xs" mt="2">
               Image
             </Text>
           </Action>
-          <Action variant="ghost" isDisabled>
+          <Action variant="ghost">
             <Icon as={BoxIcon} fontSize={20} />
             <Text fontSize="xs" mt="2">
               Shape
@@ -78,13 +82,25 @@ function Header({}: HeaderProps) {
           </Action>
         </ButtonGroup>
         <ButtonGroup spacing="0.5">
-          <Action variant="ghost">
+          <Action variant="ghost" isDisabled={!canvas.selected}>
             <Icon as={CopyIcon} fontSize={20} />
             <Text fontSize="xs" mt="2">
               Duplicate
             </Text>
           </Action>
-          <Action variant="ghost">
+          <Action variant="ghost" isDisabled={!canvas.selected}>
+            <Icon as={SendToBackIcon} fontSize={20} />
+            <Text fontSize="xs" mt="2">
+              Back
+            </Text>
+          </Action>
+          <Action variant="ghost" isDisabled={!canvas.selected}>
+            <Icon as={BringToFront} fontSize={20} />
+            <Text fontSize="xs" mt="2">
+              Front
+            </Text>
+          </Action>
+          <Action variant="ghost" isDisabled={!canvas.selected}>
             <Icon as={TrashIcon} fontSize={20} />
             <Text fontSize="xs" mt="2">
               Delete
