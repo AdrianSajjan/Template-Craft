@@ -1,4 +1,3 @@
-import * as React from "react";
 import { nanoid } from "nanoid";
 import { flowResult } from "mobx";
 import { observer } from "mobx-react-lite";
@@ -8,9 +7,7 @@ import { TypeIcon, ImageIcon, BoxIcon, TrashIcon, UndoIcon, RedoIcon, FrameIcon,
 import { useCanvas } from "@zocket/store/canvas";
 import { useTemplate } from "@zocket/store/template";
 
-import { BringToFront } from "@zocket/components/Icons/Front";
-import { SendToBackIcon } from "@zocket/components/Icons/Back";
-
+import { BringToFrontIcon, SendToBackIcon } from "@zocket/components/Icons";
 import { templates } from "@zocket/mock/templates";
 
 interface HeaderProps {}
@@ -95,7 +92,7 @@ function Header({}: HeaderProps) {
             </Text>
           </Action>
           <Action variant="ghost" isDisabled={!canvas.selected}>
-            <Icon as={BringToFront} fontSize={20} />
+            <Icon as={BringToFrontIcon} fontSize={20} />
             <Text fontSize="xs" mt="2">
               Front
             </Text>

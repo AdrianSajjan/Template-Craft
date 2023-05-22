@@ -1,6 +1,6 @@
 import { createIcon } from "@chakra-ui/react";
 
-export const BringToFront = createIcon({
+export const BringToFrontIcon = createIcon({
   displayName: "SendToBackIcon",
   viewBox: "0 0 32 32",
   path: [

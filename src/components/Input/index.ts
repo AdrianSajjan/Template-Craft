@@ -1,4 +1,4 @@
-export { default as RotateInput } from "./Rotate";
-export { default as PropertyInput } from "./Property";
-export { default as FontSizeInput } from "./FontSize";
-export { default as ColorPicker } from "./Color";
+export { default as RotateInput } from "./rotate-input";
+export { default as PropertyInput } from "./property-input";
+export { default as FontSizeInput } from "./font-size-input";
+export { default as ColorPicker } from "./color-picker";
