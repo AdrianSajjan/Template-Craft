@@ -1,8 +1,8 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, toJS } from "mobx";
 import { fabric as fabricJS } from "fabric";
 import { createContext, useCallback, useContext, useEffect } from "react";
 
-import { createFactory } from "@zocket/lib/utils";
+import { createFactory, toFixed, toPreservedFixed } from "@zocket/lib/utils";
 import { FontFaceResponse, addFontFace } from "@zocket/lib/fonts";
 
 import { toast } from "@zocket/config/theme";
@@ -10,7 +10,7 @@ import { objectID } from "@zocket/lib/nanoid";
 import { defaultFont, defaultFontSize } from "@zocket/config/fonts";
 import { exportedProps, maxUndoRedoSteps, originalHeight, originalWidth } from "@zocket/config/app";
 
-import { Clipboard, CanvasMouseEvent, CanvasState, TextboxKeys, SceneObject, Selected } from "@zocket/interfaces/fabric";
+import { Clipboard, CanvasMouseEvent, CanvasState, TextboxKeys, SceneObject, Selected, ObjectType, ImageKeys } from "@zocket/interfaces/fabric";
 import { Template } from "@zocket/interfaces/template";
 import { Optional } from "@zocket/interfaces/core";
 
@@ -290,7 +290,56 @@ export class Canvas {
     this.onUpdateObjects();
   }
 
-  *onFontFamilyChange(fontFamily = defaultFont) {
+  onObjectViewportPlacement(type: "horizontal" | "vertical" | "center") {
+    if (!this.instance) return;
+
+    const element = this.instance.getActiveObject();
+    if (!element) return;
+
+    switch (type) {
+      case "center":
+        this.instance.viewportCenterObject(element);
+        break;
+
+      case "horizontal":
+        this.instance.viewportCenterObjectH(element);
+        break;
+
+      case "vertical":
+        this.instance.viewportCenterObjectV(element);
+        break;
+    }
+
+    this.instance.fire("object:modified", { target: element }).renderAll();
+  }
+
+  onChangeObjectDimension(property: "height" | "width", value: number) {
+    if (!this.instance) return;
+
+    const element = this.instance.getActiveObject() as Required<fabricJS.Object>;
+    if (!element) return;
+
+    const type = element.type as ObjectType;
+
+    switch (type) {
+      case "textbox":
+        if (property === "height") return;
+        element.set(property, value);
+        break;
+      case "rect":
+        element.set(property, value);
+        break;
+      case "image":
+        const scale = property === "height" ? value / element.height : value / element.width;
+        const key = property === "height" ? "scaleY" : "scaleX";
+        element.set(key, scale);
+        break;
+    }
+
+    this.instance.fire("object:modified", { target: element }).renderAll();
+  }
+
+  *onChangeFontFamily(fontFamily = defaultFont) {
     if (!this.instance) return;
 
     const response: FontFaceResponse = yield addFontFace(fontFamily);
@@ -302,14 +351,35 @@ export class Canvas {
     this.instance.fire("object:modified", { target: text }).renderAll();
   }
 
-  onTextPropertyChange(property: TextboxKeys, value: any) {
+  onChangeTextProperty(property: TextboxKeys, value: any) {
     if (!this.instance) return;
 
     const text = this.instance.getActiveObject() as fabricJS.Textbox;
     text.set(property, value);
 
-    this.selected = text.toObject(exportedProps);
     this.instance.fire("object:modified", { target: text }).renderAll();
+  }
+
+  *onChangeImageSource(source: string) {
+    if (!this.instance) return;
+
+    const image = this.instance.getActiveObject() as Required<fabricJS.Image>;
+
+    yield createFactory(Promise, (resolve) => image.setSrc(source, () => resolve(image)));
+
+    this.instance.centerObject(image);
+
+    this.selected = image.toObject(exportedProps);
+    this.instance.fire("object:modified", { target: image }).renderAll();
+  }
+
+  onChangeImageProperty(property: ImageKeys, value: any) {
+    if (!this.instance) return;
+
+    const image = this.instance.getActiveObject() as fabricJS.Image;
+    image.set(property, value);
+
+    this.instance.fire("object:modified", { target: image }).renderAll();
   }
 
   *onAddText(text = "Text", { fill = "#000000", fontSize = defaultFontSize }) {
@@ -337,12 +407,11 @@ export class Canvas {
     image.scaleToHeight(height);
     image.scaleToWidth(width);
 
-    this.instance!.add(image);
-    this.instance!.viewportCenterObject(image);
-    this.instance!.setActiveObject(image);
+    this.instance.add(image);
+    this.instance.viewportCenterObject(image);
+    this.instance.setActiveObject(image);
 
-    this.instance!.fire("object:modified", { target: image });
-    this.instance!.requestRenderAll();
+    this.instance.fire("object:modified", { target: image }).renderAll();
   }
 }
 
@@ -404,33 +473,3 @@ export function useCanvas(props?: UseCanvasProps) {
 
   return [canvas, ref] as const;
 }
-
-//   const handleViewportHCenter = () => {
-//     if (!canvas) return;
-//     const element = canvas.getActiveObject()!;
-//     canvas.viewportCenterObjectH(element);
-//     element.setCoords();
-//     canvas.fire("object:modified", { target: element });
-//   };
-
-//   const handleDimensionChange = (property: "height" | "width") => (value: string) => {
-//     if (!canvas) return;
-//     const element = canvas.getActiveObject()!;
-//     if (property === "height") {
-//       if (element.type === "textbox") return;
-//       if (element.type === "image") {
-//         const scale = parseFloat(value) / element.height!;
-//         element.set("scaleY", scale);
-//       } else {
-//         element.set("height", parseFloat(value));
-//       }
-//     } else {
-//       if (element.type === "image") {
-//         const scale = parseFloat(value) / element.width!;
-//         element.set("scaleX", scale);
-//       } else {
-//         element.set("width", parseFloat(value));
-//       }
-//     }
-//     canvas.requestRenderAll();
-//   };

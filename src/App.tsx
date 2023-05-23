@@ -59,21 +59,22 @@ const ActivityIndicator = chakra(({ isLoading }: { isLoading: boolean }) => {
   );
 });
 
-const CanvasContainer = styled(Box)`
-  transform-origin: 0 0;
-  top: 0;
-  left: 0;
-  position: absolute;
-  height: ${originalHeight}px;
-  width: ${originalWidth}px;
-`;
+const CanvasContainer = chakra(Box, {
+  baseStyle: {
+    top: 0,
+    left: 0,
+    transformOrigin: "0 0",
+  },
+});
 
-const Layout = styled.div`
-  display: flex;
-  height: 100vh;
-  flex: 1;
-  flex-direction: column;
-`;
+const Layout = chakra(Box, {
+  baseStyle: {
+    display: "flex",
+    height: "100vh",
+    flex: 1,
+    flexDirection: "column",
+  },
+});
 
 function App() {
   const template = useTemplate();
@@ -83,9 +84,12 @@ function App() {
 
   const dimensions = useMemo(() => {
     return {
+      scale: zoom,
       transform: `scale(${zoom})`,
-      width: (canvas.dimensions.width || originalWidth) * zoom,
-      height: (canvas.dimensions.height || originalHeight) * zoom,
+      width: canvas.dimensions.width,
+      height: canvas.dimensions.height,
+      scaledWidth: (canvas.dimensions.width || originalWidth) * zoom,
+      scaledHeight: (canvas.dimensions.height || originalHeight) * zoom,
     };
   }, [zoom, canvas.dimensions]);
 
@@ -98,8 +102,8 @@ function App() {
         <Main>
           <LayerSidebar />
           <MainContainer id="canvas-container">
-            <Box height={dimensions.height} width={dimensions.width} pos="relative">
-              <CanvasContainer transform={dimensions.transform}>
+            <Box height={dimensions.scaledHeight} width={dimensions.scaledWidth} position="relative">
+              <CanvasContainer height={dimensions.height} width={dimensions.width} transform={dimensions.transform} position="absolute">
                 <canvas ref={ref} id="canvas" />
               </CanvasContainer>
             </Box>

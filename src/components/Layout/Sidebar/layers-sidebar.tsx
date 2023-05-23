@@ -1,7 +1,7 @@
 import * as React from "react";
 import { observer } from "mobx-react-lite";
 import { ImageIcon, LockIcon, TypeIcon, FrameIcon, UnlockIcon } from "lucide-react";
-import { Box, HStack, Icon, IconButton, Input, List, StackDivider, Text, VStack, chakra, useToast } from "@chakra-ui/react";
+import { Box, Button, HStack, Icon, IconButton, Input, List, StackDivider, Text, VStack, chakra, useToast } from "@chakra-ui/react";
 
 import { Canvas, useCanvas } from "@zocket/store/canvas";
 import { ObjectType } from "@zocket/interfaces/fabric";
@@ -116,13 +116,28 @@ function LayerSidebar() {
               Objects
             </Text>
           </HStack>
-          <List pt="4" pb="2" px="2" spacing="2" height={250} overflowY="scroll">
+          <List pt="4" pb="2" px="2" spacing="2" height={300} overflowY="scroll">
             {canvas.objects.map((object) => (
               <ListItem key={object.name} canvas={canvas} {...object} />
             ))}
           </List>
         </Box>
-        <Box></Box>
+        <Box px="4">
+          <Text fontWeight={700} fontSize="sm">
+            Export
+          </Text>
+          <VStack mt="4">
+            <Button size="sm" fontSize="xs" width="full">
+              Export - PNG
+            </Button>
+            <Button size="sm" fontSize="xs" width="full">
+              Export - ML Template
+            </Button>
+            <Button size="sm" fontSize="xs" width="full">
+              Export - Canvas JSON
+            </Button>
+          </VStack>
+        </Box>
       </VStack>
     </Drawer>
   );

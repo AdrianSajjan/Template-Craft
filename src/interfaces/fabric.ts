@@ -10,6 +10,8 @@ export type ObjectKeys = keyof fabric.Object;
 
 export type TextboxKeys = keyof fabric.Textbox;
 
+export type ImageKeys = keyof fabric.Image;
+
 export interface CanvasState {
   version: string;
   objects: fabric.Object[];
