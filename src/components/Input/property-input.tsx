@@ -24,7 +24,7 @@ function PropertyInput({ label, value, onChange, ...props }: PropertyInputProps)
         </Text>
       </InputLeftElement>
       <NumberInput value={value} onChange={onChange} {...props}>
-        <NumberInputField pl="6" />
+        <NumberInputField pl={label ? 6 : 2} />
         <NumberInputStepper>
           <NumberIncrementStepper color="gray.400" fontSize={8} />
           <NumberDecrementStepper color="gray.400" fontSize={8} />

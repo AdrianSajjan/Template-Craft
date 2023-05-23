@@ -4,7 +4,7 @@ import { fabric as fabricJS } from "fabric";
 import { RotateCcwIcon, RotateCwIcon } from "lucide-react";
 import { Box, Button, ButtonGroup, Grid, HStack, Icon, IconButton, StackDivider, Text, Textarea, VStack, chakra } from "@chakra-ui/react";
 
-import { ColorPickerInput, PropertyInput } from "@zocket/components/Input";
+import { ColorPickerInput, FontFamilyInput, PropertyInput } from "@zocket/components/Input";
 
 import { toFixed } from "@zocket/lib/utils";
 import { Canvas, useCanvas } from "@zocket/store/canvas";
@@ -105,7 +105,7 @@ const TextPropertySidebar = observer(({ canvas }: SidebarProps) => {
             </Text>
             <HStack spacing="3">
               <PropertyInput label="H" value={toFixed(selected.height)} isReadOnly />
-              <PropertyInput label="W" value={toFixed(selected.width)} onChange={(_, value) => canvas.onTextPropertyChange("width", value)} />
+              <PropertyInput label="W" value={toFixed(selected.width)} onChange={(value) => canvas.onTextPropertyChange("width", +value)} />
             </HStack>
           </Grid>
           <Grid templateColumns="80px 1fr" mt="3" alignItems="center">
@@ -113,8 +113,8 @@ const TextPropertySidebar = observer(({ canvas }: SidebarProps) => {
               Position
             </Text>
             <HStack spacing="3">
-              <PropertyInput label="X" value={toFixed(selected.left)} onChange={(_, value) => canvas.onTextPropertyChange("left", value)} />
-              <PropertyInput label="Y" value={toFixed(selected.top)} onChange={(_, value) => canvas.onTextPropertyChange("top", value)} />
+              <PropertyInput label="X" value={toFixed(selected.left)} onChange={(value) => canvas.onTextPropertyChange("left", +value)} />
+              <PropertyInput label="Y" value={toFixed(selected.top)} onChange={(value) => canvas.onTextPropertyChange("top", +value)} />
             </HStack>
           </Grid>
           <Grid templateColumns="80px 1fr" mt="3" alignItems="center" display="none">
@@ -135,6 +135,29 @@ const TextPropertySidebar = observer(({ canvas }: SidebarProps) => {
             Text
           </Text>
           <Textarea mt="3" fontSize="sm" px="2.5" value={selected.text} onChange={(event) => canvas.onTextPropertyChange("text", event.target.value)} />
+        </Box>
+        <Box px="4">
+          <Text fontWeight={700} fontSize="sm">
+            Font
+          </Text>
+          <Grid templateColumns="100px 1fr" mt="4" alignItems="center">
+            <Text fontSize="xs" fontWeight={500}>
+              Font Color
+            </Text>
+            <ColorPickerInput value={selected.fill as string} onChange={(color) => canvas.onTextPropertyChange("fill", color)} />
+          </Grid>
+          <Grid templateColumns="100px 1fr" mt="3" alignItems="center">
+            <Text fontSize="xs" fontWeight={500}>
+              Font Size
+            </Text>
+            <PropertyInput value={selected.fontSize} onChange={(value) => canvas.onTextPropertyChange("fontSize", +value)} />
+          </Grid>
+          <Grid templateColumns="100px 1fr" mt="3" alignItems="center">
+            <Text fontSize="xs" fontWeight={500}>
+              Font Family
+            </Text>
+            <FontFamilyInput value={selected.fontFamily} onChange={(value) => canvas.onFontFamilyChange(value)} />
+          </Grid>
         </Box>
       </VStack>
     </Drawer>

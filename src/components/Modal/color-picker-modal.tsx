@@ -10,7 +10,7 @@ interface ColorPickerModalProps extends PopoverProps {
 
 export default function ColorPickerModal({ children, isOpen, color, onClose, onChangeComplete }: ColorPickerModalProps) {
   return (
-    <Popover isOpen={isOpen} onClose={onClose} placement="left" closeOnBlur={false} offset={[60, 125]}>
+    <Popover isOpen={isOpen} onClose={onClose} placement="left" closeOnBlur={false} offset={[102, 125]}>
       <PopoverTrigger>{children}</PopoverTrigger>
       <PopoverContent width="min-content">
         <PopoverHeader display="flex" pr={2} pl={4} alignItems="center" justifyContent="space-between">

@@ -302,7 +302,7 @@ export class Canvas {
     this.instance.fire("object:modified", { target: text }).renderAll();
   }
 
-  onTextPropertyChange(property: TextboxKeys, value: fabricJS.Textbox[TextboxKeys]) {
+  onTextPropertyChange(property: TextboxKeys, value: any) {
     if (!this.instance) return;
 
     const text = this.instance.getActiveObject() as fabricJS.Textbox;

@@ -1,6 +1,8 @@
-import { Grid, Input, chakra, Button, Box, useDisclosure } from "@chakra-ui/react";
+import { Grid, Input, chakra, Button, Box, useDisclosure, InputGroup, InputLeftElement, Text, InputRightElement } from "@chakra-ui/react";
 import { ColorPickerModal } from "@zocket/components/Modal";
 import { convertAlphaDecimalToHex, convertAlphaPercentageToHex, convertHexToAlphaPercentage, isValidHexColor } from "@zocket/lib/colors";
+import { clamp } from "@zocket/lib/math";
+import { observer } from "mobx-react-lite";
 import { ChangeEvent, useMemo, useState } from "react";
 import { ColorResult } from "react-color";
 
@@ -10,7 +12,7 @@ interface ColorPickerProps {
   onChange?: (color: string) => void;
 }
 
-export default function ColorPickerInput({ value = "#FFFFFF", onlyChangeOnBlur, onChange }: ColorPickerProps) {
+function ColorPickerInput({ value = "#FFFFFF", onlyChangeOnBlur, onChange }: ColorPickerProps) {
   const { isOpen, onClose, onToggle } = useDisclosure();
 
   const _input = value.length === 9 ? value.substring(0, 7) : value;
@@ -53,7 +55,8 @@ export default function ColorPickerInput({ value = "#FFFFFF", onlyChangeOnBlur, 
   };
 
   const onChangeOpacity = (event: ChangeEvent<HTMLInputElement>) => {
-    const opacity = +event.target.value;
+    const value = +event.target.value;
+    const opacity = clamp(0, value, 100);
     const alpha = convertAlphaPercentageToHex(opacity);
     const result = parsed.color + alpha;
     setColor(result);
@@ -72,11 +75,20 @@ export default function ColorPickerInput({ value = "#FFFFFF", onlyChangeOnBlur, 
           <Swatch backgroundColor={color} />
         </Picker>
         <Color size="xs" value={input} onBlur={onBlurInput} onChange={onChangeInput} />
-        <Opacity size="xs" type="number" value={parsed.alpha} onChange={onChangeOpacity} onBlur={onBlurOpacity} textAlign="center" />
+        <InputGroup size="xs">
+          <Opacity type="number" min={0} max={100} pr="3" value={parsed.alpha} onChange={onChangeOpacity} onBlur={onBlurOpacity} textAlign="center" />
+          <InputRightElement pointerEvents="none">
+            <Text fontWeight={500} color="gray.500">
+              %
+            </Text>
+          </InputRightElement>
+        </InputGroup>
       </Grid>
     </ColorPickerModal>
   );
 }
+
+export default observer(ColorPickerInput);
 
 const Picker = chakra(Button, {
   baseStyle: {
