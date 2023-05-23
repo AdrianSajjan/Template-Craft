@@ -3,7 +3,7 @@ import { Box, Button, ButtonGroup, Grid, HStack, Icon, IconButton, StackDivider,
 import { observer } from "mobx-react-lite";
 import * as React from "react";
 
-import { ColorPicker, PropertyInput } from "@zocket/components/Input";
+import { ColorPickerInput, PropertyInput } from "@zocket/components/Input";
 import { Canvas, useCanvas } from "@zocket/store/canvas";
 import { RotateCcwIcon } from "lucide-react";
 import { RotateCwIcon } from "lucide-react";
@@ -65,7 +65,7 @@ const CanvasPropertySidebar = observer(({ canvas }: SidebarProps) => {
             <Text fontSize="xs" fontWeight={500}>
               Color
             </Text>
-            <ColorPicker />
+            <ColorPickerInput />
           </Grid>
         </Box>
         <Box px="4">
