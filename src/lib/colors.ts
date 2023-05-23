@@ -16,3 +16,8 @@ export function convertHexToAlphaPercentage(value: string) {
   const decimal = parseInt(value, 16);
   return (decimal * 100) / 255;
 }
+
+export function isValidHexColor(color: string) {
+  const hex = color.replace(/#/g, "");
+  return color.at(0) === "#" && hex.length === 6 && !isNaN(Number("0x" + hex));
+}

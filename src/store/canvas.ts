@@ -16,6 +16,8 @@ import { Optional } from "@zocket/interfaces/core";
 
 type Dimensions = { height?: number; width?: number };
 
+type Background = { type: "color" | "image"; source: string };
+
 export class Canvas {
   instance: Optional<fabricJS.Canvas>;
 
@@ -26,6 +28,7 @@ export class Canvas {
 
   width: number;
   height: number;
+  background: Optional<Background>;
 
   actionsEnabled: boolean;
 
@@ -95,6 +98,10 @@ export class Canvas {
     this.height = this.instance.height!;
   }
 
+  private onUpdateBackground(background: Background) {
+    this.background = background;
+  }
+
   onInitialize(canvas: fabricJS.Canvas) {
     this.instance = canvas;
 
@@ -144,16 +151,16 @@ export class Canvas {
     if (!this.instance) return;
 
     switch (template.background) {
-      case "color": {
+      case "color":
         this.instance.setBackgroundColor(template.source, this.instance.renderAll.bind(this.instance));
         break;
-      }
 
-      case "image": {
+      case "image":
         this.instance.setBackgroundImage(template.source, this.instance.renderAll.bind(this.instance));
         break;
-      }
     }
+
+    this.onUpdateBackground({ type: template.background, source: template.source });
   }
 
   onChangeDimensions({ height, width }: Dimensions) {
@@ -163,6 +170,12 @@ export class Canvas {
     if (height) this.instance.setHeight(+height).renderAll();
 
     this.onUpdateDimensions();
+  }
+
+  onChangeBackgroundColor(color: string) {
+    if (!this.instance) return;
+    this.instance.setBackgroundColor(color, this.instance.renderAll.bind(this.instance));
+    this.onUpdateBackground({ type: "color", source: color });
   }
 
   *onUndo() {

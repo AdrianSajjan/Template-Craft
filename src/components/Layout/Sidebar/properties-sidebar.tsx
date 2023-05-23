@@ -1,14 +1,14 @@
-import { fabric as fabricJS } from "fabric";
-import { Box, Button, ButtonGroup, Grid, HStack, Icon, IconButton, StackDivider, Text, Textarea, VStack, chakra } from "@chakra-ui/react";
-import { observer } from "mobx-react-lite";
 import * as React from "react";
+import { observer } from "mobx-react-lite";
+import { fabric as fabricJS } from "fabric";
+import { RotateCcwIcon, RotateCwIcon } from "lucide-react";
+import { Box, Button, ButtonGroup, Grid, HStack, Icon, IconButton, StackDivider, Text, Textarea, VStack, chakra } from "@chakra-ui/react";
 
 import { ColorPickerInput, PropertyInput } from "@zocket/components/Input";
-import { Canvas, useCanvas } from "@zocket/store/canvas";
-import { RotateCcwIcon } from "lucide-react";
-import { RotateCwIcon } from "lucide-react";
-import { ObjectType } from "@zocket/interfaces/fabric";
+
 import { toFixed } from "@zocket/lib/utils";
+import { Canvas, useCanvas } from "@zocket/store/canvas";
+import { ObjectType } from "@zocket/interfaces/fabric";
 
 interface SidebarProps {
   canvas: Canvas;
@@ -44,11 +44,11 @@ const CanvasPropertySidebar = observer(({ canvas }: SidebarProps) => {
               Size
             </Text>
             <HStack spacing="3">
-              <PropertyInput label="H" value={height} onChange={(_, height) => setHeight(height)} onBlur={() => canvas.onChangeDimensions({ height })} />
-              <PropertyInput label="W" value={width} onChange={(_, width) => setWidth(width)} onBlur={() => canvas.onChangeDimensions({ width })} />
+              <PropertyInput label="H" value={height} onChange={(height) => setHeight(+height)} onBlur={() => canvas.onChangeDimensions({ height })} />
+              <PropertyInput label="W" value={width} onChange={(width) => setWidth(+width)} onBlur={() => canvas.onChangeDimensions({ width })} />
             </HStack>
           </Grid>
-          <Grid templateColumns="100px 1fr" mt="4" alignItems="center">
+          <Grid display="none" templateColumns="100px 1fr" mt="4" alignItems="center">
             <Text fontSize="xs" fontWeight={500}>
               Background
             </Text>
@@ -65,7 +65,7 @@ const CanvasPropertySidebar = observer(({ canvas }: SidebarProps) => {
             <Text fontSize="xs" fontWeight={500}>
               Color
             </Text>
-            <ColorPickerInput />
+            <ColorPickerInput value={canvas.background?.source} onChange={(color) => canvas.onChangeBackgroundColor(color)} />
           </Grid>
         </Box>
         <Box px="4">
