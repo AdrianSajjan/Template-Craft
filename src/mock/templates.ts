@@ -4,7 +4,7 @@ import { objectID } from "~/lib/nanoid";
 export const templates: Array<Template> = [
   {
     id: "template-1",
-    source: "#FFFFFF",
+    source: "#FFFFFF00",
     background: "color",
     height: 1080,
     width: 1080,

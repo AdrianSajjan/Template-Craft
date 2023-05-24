@@ -3,7 +3,7 @@ import { makeAutoObservable } from "mobx";
 
 import { Canvas } from "~/store/canvas";
 
-import { Media, Status } from "~/interfaces/app";
+import { Status } from "~/interfaces/app";
 import { Optional } from "~/interfaces/core";
 import { Template } from "~/interfaces/template";
 
@@ -13,8 +13,6 @@ export class TemplateStore {
   active: Optional<Template>;
   status: Status;
 
-  photos: Array<Media>;
-
   get isLoading() {
     return this.status === "pending";
   }
@@ -23,7 +21,6 @@ export class TemplateStore {
     makeAutoObservable(this);
     this.canvas = canvas;
     this.status = "uninitialized";
-    this.photos = [];
   }
 
   onInitializeCanvas(canvas: Canvas) {

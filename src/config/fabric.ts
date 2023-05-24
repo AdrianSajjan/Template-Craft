@@ -14,8 +14,6 @@ fabricJS.Textbox.prototype.controls.mtr = new fabricJS.Control({
 });
 
 fabricJS.Object.prototype.transparentCorners = false;
-fabricJS.Object.prototype.padding = 16;
-fabricJS.Object.prototype.cornerSize = 16;
 fabricJS.Object.prototype.cornerStyle = "circle";
 fabricJS.Object.prototype.borderColor = "#BE94F5";
 fabricJS.Object.prototype.cornerColor = "#BE94F5";

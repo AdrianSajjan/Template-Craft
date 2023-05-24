@@ -1,4 +1,5 @@
 import * as React from "react";
+import { flowResult } from "mobx";
 import { observer } from "mobx-react-lite";
 import { fabric as fabricJS } from "fabric";
 import { RotateCcwIcon, RotateCwIcon } from "lucide-react";
@@ -10,8 +11,6 @@ import { toFixed } from "~/lib/utils";
 import { ObjectType } from "~/interfaces/fabric";
 import { Canvas, useCanvas } from "~/store/canvas";
 import { textAlignments, viewportAlignment } from "~/constants/alignment";
-import { nanoid } from "nanoid";
-import { flowResult } from "mobx";
 
 interface SidebarProps {
   canvas: Canvas;
@@ -300,11 +299,11 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
               <Button fontSize="xs" flex={1} onClick={onOpenImageExplorer}>
                 Change Image
               </Button>
-              <Button fontSize="xs" flex={1}>
-                Crop Image
+              <Button fontSize="xs" flex={1} isDisabled>
+                Edit Image
               </Button>
             </ButtonGroup>
-            <Input ref={explorer} type="file" onChange={onChangeImageExplorer} onClick={onClickImageExplorer} hidden />
+            <Input ref={explorer} accept="image/*" type="file" onChange={onChangeImageExplorer} onClick={onClickImageExplorer} hidden />
           </Box>
         </Box>
         <Box px="4">
