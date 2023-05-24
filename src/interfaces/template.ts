@@ -1,4 +1,4 @@
-import { ObjectType } from "@zocket/interfaces/fabric";
+import { ObjectType } from "~/interfaces/fabric";
 
 export interface Template {
   id: string;

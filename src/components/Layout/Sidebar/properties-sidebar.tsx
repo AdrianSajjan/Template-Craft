@@ -4,12 +4,12 @@ import { fabric as fabricJS } from "fabric";
 import { RotateCcwIcon, RotateCwIcon } from "lucide-react";
 import { Box, Button, ButtonGroup, Grid, HStack, Icon, IconButton, Input, StackDivider, Text, Textarea, Tooltip, VStack, chakra } from "@chakra-ui/react";
 
-import { ColorPickerInput, FontFamilyInput, PropertyInput } from "@zocket/components/Input";
+import { ColorPickerInput, FontFamilyInput, PropertyInput } from "~/components/Input";
 
-import { toFixed } from "@zocket/lib/utils";
-import { ObjectType } from "@zocket/interfaces/fabric";
-import { Canvas, useCanvas } from "@zocket/store/canvas";
-import { textAlignments, viewportAlignment } from "@zocket/constants/alignment";
+import { toFixed } from "~/lib/utils";
+import { ObjectType } from "~/interfaces/fabric";
+import { Canvas, useCanvas } from "~/store/canvas";
+import { textAlignments, viewportAlignment } from "~/constants/alignment";
 import { nanoid } from "nanoid";
 import { flowResult } from "mobx";
 

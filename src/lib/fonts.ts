@@ -1,4 +1,4 @@
-import { mapFontsToSource } from "@zocket/config/fonts";
+import { mapFontsToSource } from "~/config/fonts";
 
 export interface FontFaceResponse {
   error: string | null;

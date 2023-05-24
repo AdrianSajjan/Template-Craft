@@ -1,19 +1,18 @@
-import "@zocket/config/fabric";
+import "~/config/fabric";
 
-import styled from "@emotion/styled";
 import { useMemo } from "react";
 import { observer } from "mobx-react-lite";
 import { ZoomInIcon, ZoomOutIcon } from "lucide-react";
 import { Box, Button, ButtonGroup, CircularProgress, Icon, IconButton, chakra } from "@chakra-ui/react";
 
-import { Main } from "@zocket/components/Layout/Main";
-import { Header } from "@zocket/components/Layout/Header";
-import { LayerSidebar, PropertySidebar } from "@zocket/components/Layout/Sidebar";
+import { Main } from "~/components/Layout/Main";
+import { Header } from "~/components/Layout/Header";
+import { LayerSidebar, PropertySidebar } from "~/components/Layout/Sidebar";
 
-import { useCanvas } from "@zocket/store/canvas";
-import { originalHeight, originalWidth } from "@zocket/config/app";
-import { useTemplate } from "@zocket/store/template";
-import { useZoom } from "@zocket/hooks/use-zoom";
+import { useCanvas } from "~/store/canvas";
+import { originalHeight, originalWidth } from "~/config/app";
+import { useTemplate } from "~/store/template";
+import { useZoom } from "~/hooks/use-zoom";
 
 const MainContainer = chakra(Box, {
   baseStyle: {

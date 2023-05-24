@@ -1,17 +1,19 @@
 import * as React from "react";
 import { makeAutoObservable } from "mobx";
 
-import { Canvas } from "@zocket/store/canvas";
+import { Canvas } from "~/store/canvas";
 
-import { Status } from "@zocket/interfaces/app";
-import { Optional } from "@zocket/interfaces/core";
-import { Template } from "@zocket/interfaces/template";
+import { Media, Status } from "~/interfaces/app";
+import { Optional } from "~/interfaces/core";
+import { Template } from "~/interfaces/template";
 
 export class TemplateStore {
   canvas: Canvas;
 
   active: Optional<Template>;
   status: Status;
+
+  photos: Array<Media>;
 
   get isLoading() {
     return this.status === "pending";
@@ -21,6 +23,7 @@ export class TemplateStore {
     makeAutoObservable(this);
     this.canvas = canvas;
     this.status = "uninitialized";
+    this.photos = [];
   }
 
   onInitializeCanvas(canvas: Canvas) {

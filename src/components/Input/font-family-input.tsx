@@ -1,5 +1,5 @@
 import { Box, Input, List as ChakraList, ListItem as ChakraListItem, ListItemProps, ScaleFade, Text, chakra, useDisclosure, Portal } from "@chakra-ui/react";
-import { fonts } from "@zocket/config/fonts";
+import { fonts } from "~/config/fonts";
 import { observer } from "mobx-react-lite";
 import * as React from "react";
 

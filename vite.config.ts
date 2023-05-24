@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@zocket": path.resolve(__dirname, "./src"),
+      "~": path.resolve(__dirname, "./src"),
     },
   },
   base: "./",

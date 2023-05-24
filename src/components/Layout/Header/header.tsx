@@ -4,11 +4,11 @@ import { observer } from "mobx-react-lite";
 import { Box, Button, ButtonGroup, HStack, Icon, StackDivider, Text, chakra } from "@chakra-ui/react";
 import { TypeIcon, ImageIcon, BoxIcon, TrashIcon, UndoIcon, RedoIcon, FrameIcon, CopyIcon } from "lucide-react";
 
-import { useCanvas } from "@zocket/store/canvas";
-import { useTemplate } from "@zocket/store/template";
+import { useCanvas } from "~/store/canvas";
+import { useTemplate } from "~/store/template";
 
-import { BringToFrontIcon, SendToBackIcon } from "@zocket/components/Icons";
-import { templates } from "@zocket/mock/templates";
+import { BringToFrontIcon, SendToBackIcon } from "~/components/Icons";
+import { templates } from "~/mock/templates";
 
 interface HeaderProps {}
 

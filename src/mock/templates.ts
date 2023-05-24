@@ -1,5 +1,5 @@
-import { Template } from "@zocket/interfaces/template";
-import { objectID } from "@zocket/lib/nanoid";
+import { Template } from "~/interfaces/template";
+import { objectID } from "~/lib/nanoid";
 
 export const templates: Array<Template> = [
   {

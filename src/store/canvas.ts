@@ -2,17 +2,17 @@ import { makeAutoObservable, toJS } from "mobx";
 import { fabric as fabricJS } from "fabric";
 import { createContext, useCallback, useContext, useEffect } from "react";
 
-import { createFactory, toFixed, toPreservedFixed } from "@zocket/lib/utils";
-import { FontFaceResponse, addFontFace } from "@zocket/lib/fonts";
+import { createFactory, toFixed, toPreservedFixed } from "~/lib/utils";
+import { FontFaceResponse, addFontFace } from "~/lib/fonts";
 
-import { toast } from "@zocket/config/theme";
-import { objectID } from "@zocket/lib/nanoid";
-import { defaultFont, defaultFontSize } from "@zocket/config/fonts";
-import { exportedProps, maxUndoRedoSteps, originalHeight, originalWidth } from "@zocket/config/app";
+import { toast } from "~/config/theme";
+import { objectID } from "~/lib/nanoid";
+import { defaultFont, defaultFontSize } from "~/config/fonts";
+import { exportedProps, maxUndoRedoSteps, originalHeight, originalWidth } from "~/config/app";
 
-import { Clipboard, CanvasMouseEvent, CanvasState, TextboxKeys, SceneObject, Selected, ObjectType, ImageKeys } from "@zocket/interfaces/fabric";
-import { Template } from "@zocket/interfaces/template";
-import { Optional } from "@zocket/interfaces/core";
+import { Clipboard, CanvasMouseEvent, CanvasState, TextboxKeys, SceneObject, Selected, ObjectType, ImageKeys } from "~/interfaces/fabric";
+import { Template } from "~/interfaces/template";
+import { Optional } from "~/interfaces/core";
 
 type Dimensions = { height?: number; width?: number };
 

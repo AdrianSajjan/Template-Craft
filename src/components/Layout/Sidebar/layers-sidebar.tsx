@@ -3,8 +3,8 @@ import { observer } from "mobx-react-lite";
 import { ImageIcon, LockIcon, TypeIcon, FrameIcon, UnlockIcon } from "lucide-react";
 import { Box, Button, HStack, Icon, IconButton, Input, List, StackDivider, Text, VStack, chakra, useToast } from "@chakra-ui/react";
 
-import { Canvas, useCanvas } from "@zocket/store/canvas";
-import { ObjectType } from "@zocket/interfaces/fabric";
+import { Canvas, useCanvas } from "~/store/canvas";
+import { ObjectType } from "~/interfaces/fabric";
 import { nanoid } from "nanoid";
 
 interface ListItemProps {

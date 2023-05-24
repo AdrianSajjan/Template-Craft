@@ -1,7 +1,7 @@
 import { Grid, Input, chakra, Button, Box, useDisclosure, InputGroup, InputLeftElement, Text, InputRightElement } from "@chakra-ui/react";
-import { ColorPickerModal } from "@zocket/components/Modal";
-import { convertAlphaDecimalToHex, convertAlphaPercentageToHex, convertHexToAlphaPercentage, isValidHexColor } from "@zocket/lib/colors";
-import { clamp } from "@zocket/lib/math";
+import { ColorPickerModal } from "~/components/Modal";
+import { convertAlphaDecimalToHex, convertAlphaPercentageToHex, convertHexToAlphaPercentage, isValidHexColor } from "~/lib/colors";
+import { clamp } from "~/lib/math";
 import { observer } from "mobx-react-lite";
 import { ChangeEvent, useMemo, useState } from "react";
 import { ColorResult } from "react-color";
