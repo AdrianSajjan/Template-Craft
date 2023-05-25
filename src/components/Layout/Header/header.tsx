@@ -1,14 +1,18 @@
-import { nanoid } from "nanoid";
-import { flowResult } from "mobx";
+import * as React from "react";
+import * as PSD from "ag-psd";
+
 import { observer } from "mobx-react-lite";
-import { Box, Button, ButtonGroup, HStack, Icon, StackDivider, Text, chakra } from "@chakra-ui/react";
+
+import { Box, Button, ButtonGroup, HStack, Icon, Input, StackDivider, Text, chakra } from "@chakra-ui/react";
 import { TypeIcon, ImageIcon, BoxIcon, TrashIcon, UndoIcon, RedoIcon, FrameIcon, CopyIcon } from "lucide-react";
 
 import { useCanvas } from "~/store/canvas";
 import { useTemplate } from "~/store/template";
 
 import { BringToFrontIcon, SendToBackIcon } from "~/components/Icons";
-import { templates } from "~/mock/templates";
+import { fetchPSDLayers, parsePSDFromFile } from "~/lib/psd";
+import { convertPSDToTemplate } from "~/lib/psd";
+import { flowResult } from "mobx";
 
 interface HeaderProps {}
 
@@ -41,16 +45,34 @@ function Header({}: HeaderProps) {
   const [canvas] = useCanvas();
   const template = useTemplate();
 
-  const onUploadPSDFile = async () => {
-    const selected = templates.at(0)!;
-    await flowResult(template.onInitializeTemplate({ ...selected, key: nanoid() }));
+  const explorer = React.useRef<HTMLInputElement | null>(null);
+
+  const onOpenFileExplorer = () => {
+    if (!explorer.current) return;
+    explorer.current.click();
+  };
+
+  const onClickFileExplorer = (event: React.MouseEvent<HTMLInputElement, MouseEvent>) => {
+    const element = event.target as HTMLInputElement;
+    element.value = "";
+  };
+
+  const onChangeFileExplorer = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files) return;
+    const file = event.target.files.item(0)!;
+    const psd = await parsePSDFromFile(file);
+    const generated = await convertPSDToTemplate(psd);
+    await flowResult(template.onInitializeTemplate(generated));
   };
 
   return (
     <Appbar>
-      <Button fontSize="xs" size="sm" width={130} onClick={onUploadPSDFile}>
-        Upload PSD File
-      </Button>
+      <Box>
+        <Button fontSize="xs" size="sm" width={130} onClick={onOpenFileExplorer}>
+          Upload PSD File
+        </Button>
+        <input ref={explorer} hidden type="file" accept=".psd" onChange={onChangeFileExplorer} onClick={onClickFileExplorer} />
+      </Box>
       <HStack spacing="2.5" divider={<StackDivider borderColor="gray.200" />}>
         <ButtonGroup spacing="0.5">
           <Action variant="ghost">

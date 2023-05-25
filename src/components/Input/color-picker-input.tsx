@@ -1,10 +1,11 @@
-import { Grid, Input, chakra, Button, Box, useDisclosure, InputGroup, InputLeftElement, Text, InputRightElement } from "@chakra-ui/react";
-import { ColorPickerModal } from "~/components/Modal";
-import { convertAlphaDecimalToHex, convertAlphaPercentageToHex, convertHexToAlphaPercentage, isValidHexColor } from "~/lib/colors";
-import { clamp } from "~/lib/math";
+import _ from "lodash";
+import { ColorResult } from "react-color";
 import { observer } from "mobx-react-lite";
 import { ChangeEvent, useMemo, useState } from "react";
-import { ColorResult } from "react-color";
+import { Grid, Input, chakra, Button, Box, useDisclosure, InputGroup, InputLeftElement, Text, InputRightElement } from "@chakra-ui/react";
+
+import { ColorPickerModal } from "~/components/Modal";
+import { convertAlphaDecimalToHex, convertAlphaPercentageToHex, convertHexToAlphaPercentage, isValidHexColor } from "~/lib/colors";
 
 interface ColorPickerProps {
   value?: string;
@@ -56,7 +57,7 @@ function ColorPickerInput({ value = "#FFFFFF", onlyChangeOnBlur, onChange }: Col
 
   const onChangeOpacity = (event: ChangeEvent<HTMLInputElement>) => {
     const value = +event.target.value;
-    const opacity = clamp(0, value, 100);
+    const opacity = _.clamp(value, 0, 100);
     const alpha = convertAlphaPercentageToHex(opacity);
     const result = parsed.color + alpha;
     setColor(result);

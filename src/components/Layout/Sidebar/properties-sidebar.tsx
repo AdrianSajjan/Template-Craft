@@ -294,8 +294,10 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
             Image
           </Text>
           <Box mt="4">
-            <Image src={selected.src} height="full" width="full" />
-            <ButtonGroup mt="2.5" isAttached variant="outline" size="sm" width="full">
+            <Box display="flex" alignItems="center" justifyContent="center" width="full" bg="black" py="2">
+              <Image src={selected.src} height="auto" width="auto" />
+            </Box>
+            <ButtonGroup mt="4" isAttached variant="outline" size="sm" width="full">
               <Button fontSize="xs" flex={1} onClick={onOpenImageExplorer}>
                 Change Image
               </Button>
