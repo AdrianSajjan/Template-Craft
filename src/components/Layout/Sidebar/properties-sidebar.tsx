@@ -5,15 +5,15 @@ import { fabric as fabricJS } from "fabric";
 import { RotateCcwIcon, RotateCwIcon } from "lucide-react";
 import { Box, Button, ButtonGroup, Grid, HStack, Icon, IconButton, Input, StackDivider, Text, Textarea, Tooltip, VStack, chakra } from "@chakra-ui/react";
 
+import { useEyeDrop } from "~/hooks/use-eye-drop";
 import { ColorPickerInput, FontFamilyInput, PropertyInput } from "~/components/Input";
 
 import { toFixed } from "~/lib/utils";
 import { ObjectType } from "~/interfaces/fabric";
 import { Canvas, useCanvas } from "~/store/canvas";
 import { textAlignments, viewportAlignment } from "~/constants/alignment";
-import { createImageFromSource } from "~/lib/engine";
-import { convertRGBAToHex } from "~/lib/colors";
-import { useEyeDrop } from "~/hooks/use-eye-drop";
+
+import TransparentBackground from "~/assets/transparent-background.avif";
 
 interface SidebarProps {
   canvas: Canvas;
@@ -305,20 +305,18 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
           <Text fontWeight={700} fontSize="sm">
             Image
           </Text>
-          <Box mt="4">
-            <Box display="flex" alignItems="center" justifyContent="center" width="full" bg="black" py="2">
-              <EyeDropCanvas ref={eyeDropCanvasRef} cursor={isEyeDropActive ? "crosshair" : "default"} />
-            </Box>
-            <ButtonGroup mt="4" isAttached variant="outline" size="sm" width="full">
-              <Button fontSize="xs" flex={1} onClick={onOpenImageExplorer}>
-                Change Image
-              </Button>
-              <Button fontSize="xs" flex={1} onClick={onStartEyeDrop}>
-                Pick Color
-              </Button>
-            </ButtonGroup>
-            <Input ref={explorer} accept="image/*" type="file" onChange={onChangeImageExplorer} onClick={onClickImageExplorer} hidden />
+          <Box display="flex" mt="4" alignItems="center" justifyContent="center" width="full" background={`url(${TransparentBackground})`} py="2">
+            <EyeDropCanvas ref={eyeDropCanvasRef} cursor={isEyeDropActive ? "crosshair" : "default"} />
           </Box>
+          <ButtonGroup mt="4" isAttached variant="outline" size="sm" width="full">
+            <Button fontSize="xs" flex={1} onClick={onOpenImageExplorer}>
+              Change Image
+            </Button>
+            <Button fontSize="xs" flex={1} onClick={onStartEyeDrop}>
+              Pick Color
+            </Button>
+          </ButtonGroup>
+          <Input ref={explorer} accept="image/*" type="file" onChange={onChangeImageExplorer} onClick={onClickImageExplorer} hidden />
         </Box>
         <Box px="4">
           <Text fontWeight={700} fontSize="sm">

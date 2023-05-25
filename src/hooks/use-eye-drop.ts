@@ -1,5 +1,5 @@
 import * as React from "react";
-import { convertRGBAToHex, convertRGBToHex } from "~/lib/colors";
+import { convertRGBToHex } from "~/lib/colors";
 import { createImageFromSource } from "~/lib/engine";
 
 export function useEyeDrop(source: string, onPickColor?: (color: string) => void) {
@@ -16,7 +16,7 @@ export function useEyeDrop(source: string, onPickColor?: (color: string) => void
       const context = eyeDropCanvasRef.current.getContext("2d");
       if (!context) return;
 
-      const maxWidth = 287;
+      const maxWidth = 279;
 
       const aspectRatio = image.height / image.width;
       const width = image.width > maxWidth ? maxWidth : image.width;

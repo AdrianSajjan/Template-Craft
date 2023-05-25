@@ -44,7 +44,7 @@ export async function convertLayersToState(layers: Layer[]): Promise<TemplateSta
 
     const blob = layer.canvas ? await convertCanvasToBlob(layer.canvas) : null;
 
-    const value = type === "textbox" ? layer.text!.text : blob ? URL.createObjectURL(blob) : "";
+    const value = type === "textbox" ? layer.text!.text.replace(/\x03/g, " ") : blob ? URL.createObjectURL(blob) : "";
 
     const color = (layer.text?.style?.fillColor ?? { a: 1, r: 0, g: 0, b: 0 }) as RGBA;
 
