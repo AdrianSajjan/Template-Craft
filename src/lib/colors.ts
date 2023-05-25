@@ -1,4 +1,4 @@
-import { RGBA } from "ag-psd";
+import { RGBA, RGB } from "ag-psd";
 
 export function convertAlphaPercentageToHex(value: number) {
   return Math.round((value * 255) / 100)
@@ -29,4 +29,9 @@ export function convertRGBAToHex({ r, g, b, a }: RGBA) {
   const alpha = a === undefined || a === null ? 1 : a;
   const hexWithAlpha = hex + ((alpha * 255) | (1 << 8)).toString(16).slice(1);
   return "#" + hexWithAlpha;
+}
+
+export function convertRGBToHex({ r, g, b }: RGB) {
+  const hex = (r | (1 << 8)).toString(16).slice(1) + (g | (1 << 8)).toString(16).slice(1) + (b | (1 << 8)).toString(16).slice(1);
+  return "#" + hex;
 }

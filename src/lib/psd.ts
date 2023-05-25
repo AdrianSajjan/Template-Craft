@@ -1,12 +1,15 @@
 import _ from "lodash";
-import { Psd, Layer, readPsd, RGBA } from "ag-psd";
-import { Template, TemplateState } from "~/interfaces/template";
 import { nanoid } from "nanoid";
+import { Psd, Layer, readPsd, RGBA } from "ag-psd";
+
 import { objectID } from "~/lib/nanoid";
-import { ObjectType } from "~/interfaces/fabric";
-import { defaultFont, defaultFontSize } from "~/config/fonts";
-import { convertRGBAToHex } from "~/lib/colors";
 import { createFactory } from "~/lib/utils";
+import { convertRGBAToHex } from "~/lib/colors";
+
+import { defaultFont, defaultFontSize } from "~/config/fonts";
+
+import { ObjectType } from "~/interfaces/fabric";
+import { Template, TemplateState } from "~/interfaces/template";
 
 export function fetchPSDLayers(psd: Psd): Layer[] {
   const parsePSDLayers = (layers: Layer[]): Layer | Layer[] => {
@@ -55,20 +58,24 @@ export async function convertLayersToState(layers: Layer[]): Promise<TemplateSta
 
     const fontFamily = layer.text?.style?.font?.name?.replace(/-/g, " ") || defaultFont;
 
+    const details = {
+      top: layer.top,
+      left: layer.left,
+      opacity: layer.opacity,
+      fill: type === "textbox" ? hex : undefined,
+      width: type === "textbox" ? width + 2 : width,
+      height: type !== "textbox" ? height : undefined,
+      fontSize: type === "textbox" ? fontSize : undefined,
+      fontFamily: type === "textbox" ? fontFamily || defaultFont : undefined,
+    };
+
+    const sanitized = _(details).omitBy(_.isUndefined).value();
+
     const data = {
       name,
       type,
       value,
-      details: {
-        width,
-        height,
-        top: layer.top,
-        left: layer.left,
-        opacity: layer.opacity,
-        fill: type === "textbox" ? hex : undefined,
-        fontSize: type === "textbox" ? fontSize : undefined,
-        fontFamily: type === "textbox" ? fontFamily || defaultFont : undefined,
-      },
+      details: sanitized,
     };
 
     state.push(data);
@@ -78,7 +85,7 @@ export async function convertLayersToState(layers: Layer[]): Promise<TemplateSta
 }
 
 export async function convertCanvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
-  return createFactory<Promise<Blob>, [(resolve: (value: Blob) => void, reject: (reason?: any) => void) => void]>(Promise, (resolve, reject) => {
+  return createFactory(Promise, (resolve: (value: Blob) => void, reject: (error?: any) => void) => {
     canvas.toBlob((blob) => {
       if (!blob) reject();
       else resolve(blob);

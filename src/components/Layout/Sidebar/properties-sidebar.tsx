@@ -11,6 +11,9 @@ import { toFixed } from "~/lib/utils";
 import { ObjectType } from "~/interfaces/fabric";
 import { Canvas, useCanvas } from "~/store/canvas";
 import { textAlignments, viewportAlignment } from "~/constants/alignment";
+import { createImageFromSource } from "~/lib/engine";
+import { convertRGBAToHex } from "~/lib/colors";
+import { useEyeDrop } from "~/hooks/use-eye-drop";
 
 interface SidebarProps {
   canvas: Canvas;
@@ -33,6 +36,13 @@ const Drawer = chakra("aside", {
 const Image = chakra("img", {
   baseStyle: {
     display: "block",
+  },
+});
+
+const EyeDropCanvas = chakra("canvas", {
+  baseStyle: {
+    display: "block",
+    width: "100%",
   },
 });
 
@@ -216,6 +226,8 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
 
   const explorer = React.useRef<HTMLInputElement | null>(null);
 
+  const { eyeDropCanvasRef, isEyeDropActive, onStartEyeDrop } = useEyeDrop(selected.src, (color) => alert(color));
+
   const onShouldUpdate = () => {
     setShouldUpdate(true);
   };
@@ -272,8 +284,8 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
               Position
             </Text>
             <HStack spacing="3">
-              <PropertyInput label="X" value={selected.left} onChange={(value) => canvas.onChangeTextProperty("left", +value)} />
-              <PropertyInput label="Y" value={selected.top} onChange={(value) => canvas.onChangeTextProperty("top", +value)} />
+              <PropertyInput label="X" value={selected.left} onChange={(value) => canvas.onChangeImageProperty("left", +value)} />
+              <PropertyInput label="Y" value={selected.top} onChange={(value) => canvas.onChangeImageProperty("top", +value)} />
             </HStack>
           </Grid>
           <Grid templateColumns="80px 1fr" mt="3" alignItems="center" display="none">
@@ -295,14 +307,14 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
           </Text>
           <Box mt="4">
             <Box display="flex" alignItems="center" justifyContent="center" width="full" bg="black" py="2">
-              <Image src={selected.src} height="auto" width="auto" />
+              <EyeDropCanvas ref={eyeDropCanvasRef} cursor={isEyeDropActive ? "crosshair" : "default"} />
             </Box>
             <ButtonGroup mt="4" isAttached variant="outline" size="sm" width="full">
               <Button fontSize="xs" flex={1} onClick={onOpenImageExplorer}>
                 Change Image
               </Button>
-              <Button fontSize="xs" flex={1} isDisabled>
-                Edit Image
+              <Button fontSize="xs" flex={1} onClick={onStartEyeDrop}>
+                Pick Color
               </Button>
             </ButtonGroup>
             <Input ref={explorer} accept="image/*" type="file" onChange={onChangeImageExplorer} onClick={onClickImageExplorer} hidden />
