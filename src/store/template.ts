@@ -36,8 +36,6 @@ export class TemplateStore {
 }
 
 export const TemplateContext = React.createContext<TemplateStore | undefined>(undefined);
-TemplateContext.displayName = "TemplateContext";
-
 export const TemplateProvider = TemplateContext.Provider;
 
 export function useTemplate() {

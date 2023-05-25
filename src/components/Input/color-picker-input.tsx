@@ -2,18 +2,19 @@ import _ from "lodash";
 import { ColorResult } from "react-color";
 import { observer } from "mobx-react-lite";
 import { ChangeEvent, useMemo, useState } from "react";
-import { Grid, Input, chakra, Button, Box, useDisclosure, InputGroup, InputLeftElement, Text, InputRightElement } from "@chakra-ui/react";
+import { Grid, Input, chakra, Button, Box, useDisclosure, InputGroup, Text, InputRightElement } from "@chakra-ui/react";
 
 import { ColorPickerModal } from "~/components/Modal";
-import { convertAlphaDecimalToHex, convertAlphaPercentageToHex, convertHexToAlphaPercentage, isValidHexColor } from "~/lib/colors";
+import { convertAlphaDecimalToHex, convertAlphaPercentageToHex, isValidHexColor, extractAlphaAndBaseFromHex } from "~/lib/colors";
 
 interface ColorPickerProps {
   value?: string;
+  isDisabled?: boolean;
   onlyChangeOnBlur?: boolean;
   onChange?: (color: string) => void;
 }
 
-function ColorPickerInput({ value = "#FFFFFF", onlyChangeOnBlur, onChange }: ColorPickerProps) {
+function ColorPickerInput({ value = "#FFFFFF", onlyChangeOnBlur, isDisabled, onChange }: ColorPickerProps) {
   const { isOpen, onClose, onToggle } = useDisclosure();
 
   const _input = value.length === 9 ? value.substring(0, 7) : value;
@@ -22,11 +23,10 @@ function ColorPickerInput({ value = "#FFFFFF", onlyChangeOnBlur, onChange }: Col
   const [input, setInput] = useState(_input);
 
   const parsed = useMemo(() => {
-    const alpha = color.length === 9 ? color.substring(7) : "FF";
-    const base = color.length === 9 ? color.substring(0, 7) : color;
+    const { alphaAsPercentage, base } = extractAlphaAndBaseFromHex(color);
     return {
       color: base,
-      alpha: +convertHexToAlphaPercentage(alpha).toFixed(0),
+      alpha: +alphaAsPercentage.toFixed(0),
     };
   }, [color]);
 
@@ -71,15 +71,15 @@ function ColorPickerInput({ value = "#FFFFFF", onlyChangeOnBlur, onChange }: Col
 
   return (
     <ColorPickerModal isOpen={isOpen} color={color} onChangeComplete={onChangePicker} onClose={onClose}>
-      <Grid alignItems="center" templateColumns="32px 1fr 56px">
-        <Picker size="xs" variant="outline" onClick={onToggle}>
+      <Grid alignItems="center" width="full" templateColumns="32px auto 56px">
+        <Picker size="xs" variant="outline" onClick={onToggle} isDisabled={isDisabled}>
           <Swatch backgroundColor={color} />
         </Picker>
-        <Color size="xs" value={input} onBlur={onBlurInput} onChange={onChangeInput} />
+        <Color size="xs" value={input} onBlur={onBlurInput} onChange={onChangeInput} isDisabled={isDisabled} />
         <InputGroup size="xs">
-          <Opacity type="number" min={0} max={100} pr="3" value={parsed.alpha} onChange={onChangeOpacity} onBlur={onBlurOpacity} textAlign="center" />
+          <Opacity type="number" min={0} max={100} pr="3" value={parsed.alpha} onChange={onChangeOpacity} onBlur={onBlurOpacity} textAlign="center" isDisabled={isDisabled} />
           <InputRightElement pointerEvents="none">
-            <Text fontWeight={500} color="gray.500">
+            <Text fontWeight={500} color={isDisabled ? "gray.300" : "gray.500"}>
               %
             </Text>
           </InputRightElement>

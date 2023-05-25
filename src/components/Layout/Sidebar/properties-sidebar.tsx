@@ -3,13 +3,13 @@ import { flowResult } from "mobx";
 import { observer } from "mobx-react-lite";
 import { fabric as fabricJS } from "fabric";
 import { RotateCcwIcon, RotateCwIcon } from "lucide-react";
-import { Box, Button, ButtonGroup, Grid, HStack, Icon, IconButton, Input, StackDivider, Text, Textarea, Tooltip, VStack, chakra } from "@chakra-ui/react";
+import { Box, Button, ButtonGroup, Grid, HStack, Icon, IconButton, Input, StackDivider, Switch, Text, Textarea, Tooltip, VStack, chakra } from "@chakra-ui/react";
 
 import { useEyeDrop } from "~/hooks/use-eye-drop";
 import { ColorPickerInput, FontFamilyInput, PropertyInput } from "~/components/Input";
 
 import { toFixed } from "~/lib/utils";
-import { ObjectType } from "~/interfaces/fabric";
+import { ObjectType } from "~/interfaces/canvas";
 import { Canvas, useCanvas } from "~/store/canvas";
 import { textAlignments, viewportAlignment } from "~/constants/alignment";
 
@@ -263,6 +263,9 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
     await flowResult(canvas.onChangeImageSource(url));
   };
 
+  const tint = canvas.onFetchImageFilter(selected.name, "tint");
+  console.log(tint);
+
   return (
     <Drawer>
       <VStack alignItems="stretch" spacing="5" py="5" divider={<StackDivider borderColor="gray.200" />}>
@@ -333,6 +336,20 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
                 </Tooltip>
               ))}
             </ButtonGroup>
+          </Grid>
+        </Box>
+        <Box px="4">
+          <HStack alignItems="center" spacing={3}>
+            <Text fontWeight={700} fontSize="sm">
+              Tint
+            </Text>
+            <Switch size="sm" />
+          </HStack>
+          <Grid templateColumns="80px 1fr" mt="3" alignItems="center">
+            <Text fontSize="xs" fontWeight={500} color={tint.active ? "black" : "gray.300"}>
+              Color
+            </Text>
+            {tint.active ? <ColorPickerInput value={String(tint.value.color)} onChange={(color) => canvas.onAddOrEnableImageTint(color)} /> : <ColorPickerInput isDisabled />}
           </Grid>
         </Box>
       </VStack>

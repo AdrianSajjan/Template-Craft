@@ -1,21 +1,22 @@
-import { makeAutoObservable, toJS } from "mobx";
+import { makeAutoObservable } from "mobx";
 import { fabric as fabricJS } from "fabric";
 import { createContext, useCallback, useContext, useEffect } from "react";
 
-import { createFactory, toFixed, toPreservedFixed } from "~/lib/utils";
+import { extractAlphaAndBaseFromHex } from "~/lib/colors";
 import { FontFaceResponse, addFontFace } from "~/lib/fonts";
-
-import { toast } from "~/config/theme";
 import { objectID } from "~/lib/nanoid";
-import { defaultFont, defaultFontSize } from "~/config/fonts";
-import { exportedProps, maxUndoRedoSteps, originalHeight, originalWidth } from "~/config/app";
+import { createFactory } from "~/lib/utils";
 
-import { Clipboard, CanvasMouseEvent, CanvasState, TextboxKeys, SceneObject, Selected, ObjectType, ImageKeys } from "~/interfaces/fabric";
-import { Template } from "~/interfaces/template";
+import { exportedProps, maxUndoRedoSteps, originalHeight, originalWidth } from "~/config/app";
+import { defaultFont, defaultFontSize } from "~/config/fonts";
+import { toast } from "~/config/theme";
+
 import { Optional } from "~/interfaces/core";
+import { Template } from "~/interfaces/template";
+import { Filter, FilterKeys, FilterMap, ImageFilterMap } from "~/interfaces/filter";
+import { CanvasMouseEvent, CanvasState, Clipboard, ImageKeys, ObjectType, SceneObject, Selected, TextboxKeys } from "~/interfaces/canvas";
 
 type Dimensions = { height?: number; width?: number };
-
 type Background = { type: "color" | "image"; source: string };
 
 export class Canvas {
@@ -31,6 +32,8 @@ export class Canvas {
   background: Optional<Background>;
 
   actionsEnabled: boolean;
+
+  filters: ImageFilterMap;
 
   private undoStack: CanvasState[];
   private redoStack: CanvasState[];
@@ -50,14 +53,15 @@ export class Canvas {
   constructor() {
     makeAutoObservable(this);
 
-    this.objects = [];
-    this.actionsEnabled = true;
+    this.width = 0;
+    this.height = 0;
 
+    this.objects = [];
     this.undoStack = [];
     this.redoStack = [];
 
-    this.width = 0;
-    this.height = 0;
+    this.actionsEnabled = true;
+    this.filters = createFactory<ImageFilterMap, []>(Map);
   }
 
   private *onLoadFromJSON(state: CanvasState) {
@@ -100,6 +104,23 @@ export class Canvas {
 
   private onUpdateBackground(background: Background) {
     this.background = background;
+  }
+
+  private onAddOrUpdateFilter(name: string, key: FilterKeys, value: Filter) {
+    const hasFilters = this.filters.has(name);
+    const filters = hasFilters ? this.filters.get(name)! : createFactory<FilterMap, []>(Map);
+    filters.set(key, value);
+    this.filters.set(name, filters);
+    return;
+  }
+
+  private onRemoveFilter(name: string, key: FilterKeys) {
+    const hasFilters = this.filters.has(name);
+    if (!hasFilters) return;
+    const filters = this.filters.get(name)!;
+    filters.delete(key);
+    this.filters.set(name, filters);
+    return;
   }
 
   onInitialize(canvas: fabricJS.Canvas) {
@@ -339,13 +360,43 @@ export class Canvas {
     this.instance.fire("object:modified", { target: element }).renderAll();
   }
 
+  onChangeObjectLayer(layer: "back" | "front" | "backward" | "forward" | number) {
+    if (!this.instance) return;
+
+    const element = this.instance.getActiveObject() as Required<fabricJS.Object>;
+    if (!element) return;
+
+    switch (layer) {
+      case "back":
+        element.sendToBack();
+        break;
+      case "backward":
+        element.sendBackwards();
+        break;
+      case "front":
+        element.bringToFront();
+        break;
+      case "forward":
+        element.bringForward();
+        break;
+      default:
+        element.moveTo(layer);
+    }
+
+    this.onUpdateObjects();
+
+    this.instance.fire("object:modified", { target: element }).renderAll();
+  }
+
   *onChangeFontFamily(fontFamily = defaultFont) {
     if (!this.instance) return;
 
     const response: FontFaceResponse = yield addFontFace(fontFamily);
     if (response.error) toast({ title: "Warning", description: response.error, variant: "left-accent", status: "warning", isClosable: true });
 
-    const text = this.instance.getActiveObject() as fabricJS.Textbox;
+    const text = this.instance.getActiveObject() as Required<fabricJS.Textbox>;
+    if (!text) return;
+
     text.set("fontFamily", response.name);
 
     this.instance.fire("object:modified", { target: text }).renderAll();
@@ -354,7 +405,9 @@ export class Canvas {
   onChangeTextProperty(property: TextboxKeys, value: any) {
     if (!this.instance) return;
 
-    const text = this.instance.getActiveObject() as fabricJS.Textbox;
+    const text = this.instance.getActiveObject() as Required<fabricJS.Textbox>;
+    if (!text) return;
+
     text.set(property, value);
 
     this.instance.fire("object:modified", { target: text }).renderAll();
@@ -364,6 +417,7 @@ export class Canvas {
     if (!this.instance) return;
 
     const image = this.instance.getActiveObject() as Required<fabricJS.Image>;
+    if (!image) return;
 
     yield createFactory(Promise, (resolve) => image.setSrc(source, () => resolve(image)));
 
@@ -376,8 +430,63 @@ export class Canvas {
   onChangeImageProperty(property: ImageKeys, value: any) {
     if (!this.instance) return;
 
-    const image = this.instance.getActiveObject() as fabricJS.Image;
+    const image = this.instance.getActiveObject() as Required<fabricJS.Image>;
+    if (!image) return;
+
     image.set(property, value);
+
+    this.instance.fire("object:modified", { target: image }).renderAll();
+  }
+
+  onFetchImageFilter(name: string, key: FilterKeys) {
+    const hasFilters = this.filters.has(name);
+    if (!hasFilters) return { active: false, value: null } as const;
+
+    const filters = this.filters.get(name)!;
+
+    const hasFilter = filters.has(key);
+    if (!hasFilter) return { active: false, value: null } as const;
+
+    const filter = filters.get(key)!;
+
+    return { active: true, value: filter } as const;
+  }
+
+  onRemoveImageFilter(key: FilterKeys) {
+    if (!this.instance) return;
+
+    const image = this.instance.getActiveObject() as Required<fabricJS.Image>;
+    if (!image) return;
+
+    const filter = this.onFetchImageFilter(image.name, key);
+
+    if (!filter.active) return;
+
+    image.filters.splice(filter.value.index, 1);
+    image.applyFilters();
+
+    this.onRemoveFilter(image.name, key);
+
+    this.instance.fire("object:modified", { target: image }).renderAll();
+  }
+
+  onAddOrEnableImageTint(hex: string, opacity?: number) {
+    if (!this.instance) return;
+
+    const image = this.instance.getActiveObject() as Required<fabricJS.Image>;
+    if (!image) return;
+
+    const { base: color, alphaAsDecimal } = extractAlphaAndBaseFromHex(hex);
+    const alpha = opacity ?? alphaAsDecimal;
+
+    const filter = new fabricJS.Image.filters.BlendColor({ color, alpha, mode: "tint" });
+
+    const index = image.filters.length;
+    image.filters[index] = filter;
+    image.applyFilters();
+
+    const body = filter.toObject();
+    this.onAddOrUpdateFilter(image.name, "tint", { index, ...body });
 
     this.instance.fire("object:modified", { target: image }).renderAll();
   }
@@ -416,15 +525,9 @@ export class Canvas {
 }
 
 export const CanvasContext = createContext<Canvas | undefined>(undefined);
-CanvasContext.displayName = "CanvasContext";
-
 export const CanvasProvider = CanvasContext.Provider;
 
-type UseCanvasProps = { onInitialize?: (canvas: Canvas) => void };
-
-const options = { width: originalWidth, height: originalHeight, preserveObjectStacking: true, backgroundColor: "#FFFFFF", selection: false };
-
-export function useCanvas(props?: UseCanvasProps) {
+export function useCanvas(props?: { onInitialize?: (canvas: Canvas) => void }) {
   const canvas = useContext(CanvasContext);
 
   if (!canvas) throw new Error("Please wrap your components in Canvas Provider");
@@ -433,6 +536,7 @@ export function useCanvas(props?: UseCanvasProps) {
     if (!element) {
       canvas.instance?.dispose();
     } else {
+      const options = { width: originalWidth, height: originalHeight, preserveObjectStacking: true, backgroundColor: "#FFFFFF", selection: false };
       const fabric = createFactory(fabricJS.Canvas, element, options);
       canvas.onInitialize(fabric);
       props?.onInitialize?.(canvas);

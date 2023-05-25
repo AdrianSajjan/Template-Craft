@@ -1,18 +1,17 @@
 import * as React from "react";
-import * as PSD from "ag-psd";
 
+import { flowResult } from "mobx";
 import { observer } from "mobx-react-lite";
 
-import { Box, Button, ButtonGroup, HStack, Icon, Input, StackDivider, Text, chakra } from "@chakra-ui/react";
+import { Box, Button, ButtonGroup, HStack, Icon, StackDivider, Text, chakra } from "@chakra-ui/react";
 import { TypeIcon, ImageIcon, BoxIcon, TrashIcon, UndoIcon, RedoIcon, FrameIcon, CopyIcon } from "lucide-react";
 
 import { useCanvas } from "~/store/canvas";
 import { useTemplate } from "~/store/template";
 
 import { BringToFrontIcon, SendToBackIcon } from "~/components/Icons";
-import { fetchPSDLayers, parsePSDFromFile } from "~/lib/psd";
+import { parsePSDFromFile } from "~/lib/psd";
 import { convertPSDToTemplate } from "~/lib/psd";
-import { flowResult } from "mobx";
 
 interface HeaderProps {}
 
@@ -107,13 +106,13 @@ function Header({}: HeaderProps) {
               Duplicate
             </Text>
           </Action>
-          <Action variant="ghost" isDisabled={!canvas.selected}>
+          <Action variant="ghost" isDisabled={!canvas.selected} onClick={() => canvas.onChangeObjectLayer("backward")}>
             <Icon as={SendToBackIcon} fontSize={20} />
             <Text fontSize="xs" mt="2">
               Back
             </Text>
           </Action>
-          <Action variant="ghost" isDisabled={!canvas.selected}>
+          <Action variant="ghost" isDisabled={!canvas.selected} onClick={() => canvas.onChangeObjectLayer("forward")}>
             <Icon as={BringToFrontIcon} fontSize={20} />
             <Text fontSize="xs" mt="2">
               Front

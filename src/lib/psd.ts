@@ -8,7 +8,7 @@ import { convertRGBAToHex } from "~/lib/colors";
 
 import { defaultFont, defaultFontSize } from "~/config/fonts";
 
-import { ObjectType } from "~/interfaces/fabric";
+import { ObjectType } from "~/interfaces/canvas";
 import { Template, TemplateState } from "~/interfaces/template";
 
 export function fetchPSDLayers(psd: Psd): Layer[] {
@@ -63,7 +63,7 @@ export async function convertLayersToState(layers: Layer[]): Promise<TemplateSta
       left: layer.left,
       opacity: layer.opacity,
       fill: type === "textbox" ? hex : undefined,
-      width: type === "textbox" ? width + 2 : width,
+      width: type === "textbox" ? width + 12 : width,
       height: type !== "textbox" ? height : undefined,
       fontSize: type === "textbox" ? fontSize : undefined,
       fontFamily: type === "textbox" ? fontFamily || defaultFont : undefined,

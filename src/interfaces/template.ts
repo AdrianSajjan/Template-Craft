@@ -1,4 +1,4 @@
-import { ObjectType } from "~/interfaces/fabric";
+import { ObjectType } from "~/interfaces/canvas";
 
 export interface Template {
   id: string;

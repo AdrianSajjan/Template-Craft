@@ -4,7 +4,7 @@ import { ImageIcon, LockIcon, TypeIcon, FrameIcon, UnlockIcon } from "lucide-rea
 import { Box, Button, HStack, Icon, IconButton, Input, List, StackDivider, Text, VStack, chakra, useToast } from "@chakra-ui/react";
 
 import { Canvas, useCanvas } from "~/store/canvas";
-import { ObjectType } from "~/interfaces/fabric";
+import { ObjectType } from "~/interfaces/canvas";
 import { nanoid } from "nanoid";
 
 interface ListItemProps {
