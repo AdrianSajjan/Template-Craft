@@ -92,7 +92,7 @@ export class Canvas {
   private onUpdateObjects() {
     if (!this.instance) return;
     const objects = this.instance.getObjects();
-    this.objects = objects.map((object) => object.toObject(exportedProps)).map((object) => ({ name: object.name, type: object.type }));
+    this.objects = objects.map((object) => object.toObject(exportedProps)).map((object, index) => ({ name: object.name, type: object.type, index }));
     this.selected = this.instance.getActiveObject()?.toObject(exportedProps);
   }
 
@@ -133,12 +133,14 @@ export class Canvas {
   *onLoadFromTemplate(template: Template) {
     if (!this.instance) return;
 
-    this.instance.clearContext(this.instance.getContext());
     this.instance.clear();
 
     this.objects = [];
     this.redoStack = [];
     this.undoStack = [];
+
+    this.selected = null;
+    this.filters = createFactory<ImageFilterMap, []>(Map);
 
     this.onChangeBackground(template);
     this.onChangeDimensions({ height: template.height, width: template.width });
@@ -166,6 +168,14 @@ export class Canvas {
 
     this.instance.fire("object:modified", { target: null });
     this.instance.requestRenderAll();
+  }
+
+  *onLoadFromJSONTemplate() {}
+
+  onExportTemplateAsJSON() {
+    if (!this.instance) return;
+    const exported = this.instance.toObject(exportedProps);
+    console.log(JSON.stringify(exported, null, 4));
   }
 
   onChangeBackground(template: Pick<Template, "background" | "source">) {
@@ -419,11 +429,15 @@ export class Canvas {
     const image = this.instance.getActiveObject() as Required<fabricJS.Image>;
     if (!image) return;
 
+    const width = image.width * image.scaleX;
+    const height = image.height * image.scaleY;
+
     yield createFactory(Promise, (resolve) => image.setSrc(source, () => resolve(image)));
 
-    this.instance.centerObject(image);
+    const scaleX = width / image.width;
+    const scaleY = height / image.height;
+    image.set("scaleX", scaleX).set("scaleY", scaleY);
 
-    this.selected = image.toObject(exportedProps);
     this.instance.fire("object:modified", { target: image }).renderAll();
   }
 
@@ -479,14 +493,46 @@ export class Canvas {
     const { base: color, alphaAsDecimal } = extractAlphaAndBaseFromHex(hex);
     const alpha = opacity ?? alphaAsDecimal;
 
-    const filter = new fabricJS.Image.filters.BlendColor({ color, alpha, mode: "tint" });
+    const filter = createFactory(fabricJS.Image.filters.BlendColor, { color, alpha, mode: "tint" });
 
-    const index = image.filters.length;
+    const existing = this.onFetchImageFilter(image.name, "tint");
+    const index = existing.active ? existing.value.index : image.filters.length;
+
     image.filters[index] = filter;
     image.applyFilters();
 
     const body = filter.toObject();
     this.onAddOrUpdateFilter(image.name, "tint", { index, ...body });
+
+    this.instance.fire("object:modified", { target: image }).renderAll();
+  }
+
+  onAddImageMask() {
+    if (!this.instance) return;
+
+    const image = this.instance.getActiveObject() as Required<fabricJS.Image>;
+    if (!image) return;
+
+    const currentIndex = this.instance.getObjects().indexOf(image);
+    const targetIndex = currentIndex - 1;
+
+    const mask = this.instance.getObjects().at(targetIndex) as fabricJS.Image;
+
+    if (!mask || mask.type !== "image") {
+      toast({ title: "Unable to apply filter", description: "Please make sure image is in front of the mask", variant: "left-accent", status: "error", isClosable: true });
+      return;
+    }
+
+    const filter = createFactory(fabricJS.Image.filters.BlendImage, { image: mask, mode: "mask" });
+
+    const existing = this.onFetchImageFilter(image.name, "mask");
+    const index = existing.active ? existing.value.index : image.filters.length;
+
+    image.filters[index] = filter;
+    image.applyFilters();
+
+    const body = filter.toObject();
+    this.onAddOrUpdateFilter(image.name, "mask", { index, ...body });
 
     this.instance.fire("object:modified", { target: image }).renderAll();
   }
@@ -536,7 +582,7 @@ export function useCanvas(props?: { onInitialize?: (canvas: Canvas) => void }) {
     if (!element) {
       canvas.instance?.dispose();
     } else {
-      const options = { width: originalWidth, height: originalHeight, preserveObjectStacking: true, backgroundColor: "#FFFFFF", selection: false };
+      const options = { width: originalWidth, height: originalHeight, preserveObjectStacking: true, backgroundColor: "#FFFFFF", centeredRotation: true, selection: false };
       const fabric = createFactory(fabricJS.Canvas, element, options);
       canvas.onInitialize(fabric);
       props?.onInitialize?.(canvas);

@@ -116,7 +116,7 @@ function LayerSidebar() {
               Objects
             </Text>
           </HStack>
-          <List pt="4" pb="2" px="2" spacing="2" height={300} overflowY="scroll">
+          <List mt="4" mb="2" px="2" spacing="2" height={300} overflowY="scroll">
             {canvas.objects.map((object) => (
               <ListItem key={object.name} canvas={canvas} {...object} />
             ))}
@@ -133,7 +133,7 @@ function LayerSidebar() {
             <Button size="sm" fontSize="xs" width="full">
               Export - ML Template
             </Button>
-            <Button size="sm" fontSize="xs" width="full">
+            <Button size="sm" fontSize="xs" width="full" onClick={() => canvas.onExportTemplateAsJSON()}>
               Export - Canvas JSON
             </Button>
           </VStack>

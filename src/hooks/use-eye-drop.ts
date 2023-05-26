@@ -16,7 +16,7 @@ export function useEyeDrop(source: string, onPickColor?: (color: string) => void
       const context = eyeDropCanvasRef.current.getContext("2d");
       if (!context) return;
 
-      const maxWidth = 279;
+      const maxWidth = 270;
 
       const aspectRatio = image.height / image.width;
       const width = image.width > maxWidth ? maxWidth : image.width;

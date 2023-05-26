@@ -16,4 +16,4 @@ export type ImageKeys = keyof fabric.Image;
 
 export type CanvasState = { version: string; objects: fabric.Object[]; background?: string };
 
-export type SceneObject = { name: string; type: ObjectType };
+export type SceneObject = { name: string; type: ObjectType; index: number };

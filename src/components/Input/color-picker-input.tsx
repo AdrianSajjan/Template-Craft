@@ -9,12 +9,14 @@ import { convertAlphaDecimalToHex, convertAlphaPercentageToHex, isValidHexColor,
 
 interface ColorPickerProps {
   value?: string;
+  offsetX?: number;
   isDisabled?: boolean;
   onlyChangeOnBlur?: boolean;
+  size?: "sm" | "md" | "lg" | "xs";
   onChange?: (color: string) => void;
 }
 
-function ColorPickerInput({ value = "#FFFFFF", onlyChangeOnBlur, isDisabled, onChange }: ColorPickerProps) {
+function ColorPickerInput({ value = "#FFFFFF", size = "xs", offsetX, onlyChangeOnBlur, isDisabled, onChange }: ColorPickerProps) {
   const { isOpen, onClose, onToggle } = useDisclosure();
 
   const _input = value.length === 9 ? value.substring(0, 7) : value;
@@ -69,15 +71,17 @@ function ColorPickerInput({ value = "#FFFFFF", onlyChangeOnBlur, isDisabled, onC
     onChange?.(color);
   };
 
+  const templateColumns = size === "xs" ? "36px auto 48px" : "40px auto 60px";
+
   return (
-    <ColorPickerModal isOpen={isOpen} color={color} onChangeComplete={onChangePicker} onClose={onClose}>
-      <Grid alignItems="center" width="full" templateColumns="32px auto 56px">
-        <Picker size="xs" variant="outline" onClick={onToggle} isDisabled={isDisabled}>
+    <ColorPickerModal isOpen={isOpen} color={color} offsetX={offsetX} onChangeComplete={onChangePicker} onClose={onClose}>
+      <Grid alignItems="center" width="full" templateColumns={templateColumns}>
+        <Picker size={size} variant="outline" onClick={onToggle} isDisabled={isDisabled}>
           <Swatch backgroundColor={color} />
         </Picker>
-        <Color size="xs" value={input} onBlur={onBlurInput} onChange={onChangeInput} isDisabled={isDisabled} />
-        <InputGroup size="xs">
-          <Opacity type="number" min={0} max={100} pr="3" value={parsed.alpha} onChange={onChangeOpacity} onBlur={onBlurOpacity} textAlign="center" isDisabled={isDisabled} />
+        <Color size={size} value={input} onBlur={onBlurInput} onChange={onChangeInput} isDisabled={isDisabled} />
+        <InputGroup size={size}>
+          <Opacity type="number" min={0} max={100} value={parsed.alpha} onChange={onChangeOpacity} onBlur={onBlurOpacity} isDisabled={isDisabled} />
           <InputRightElement pointerEvents="none">
             <Text fontWeight={500} color={isDisabled ? "gray.300" : "gray.500"}>
               %

@@ -1,19 +1,19 @@
 import * as React from "react";
-import { flowResult } from "mobx";
+import { flowResult, toJS } from "mobx";
 import { observer } from "mobx-react-lite";
 import { fabric as fabricJS } from "fabric";
 import { RotateCcwIcon, RotateCwIcon } from "lucide-react";
 import { Box, Button, ButtonGroup, Grid, HStack, Icon, IconButton, Input, StackDivider, Switch, Text, Textarea, Tooltip, VStack, chakra } from "@chakra-ui/react";
 
 import { useEyeDrop } from "~/hooks/use-eye-drop";
+import { Canvas, useCanvas } from "~/store/canvas";
+
+import background from "~/assets/transparent-background.avif";
 import { ColorPickerInput, FontFamilyInput, PropertyInput } from "~/components/Input";
 
 import { toFixed } from "~/lib/utils";
-import { ObjectType } from "~/interfaces/canvas";
-import { Canvas, useCanvas } from "~/store/canvas";
 import { textAlignments, viewportAlignment } from "~/constants/alignment";
-
-import TransparentBackground from "~/assets/transparent-background.avif";
+import { ObjectType } from "~/interfaces/canvas";
 
 interface SidebarProps {
   canvas: Canvas;
@@ -29,6 +29,7 @@ const Drawer = chakra("aside", {
     borderLeft: "1.5px solid #e2e8f0",
 
     width: 320,
+    paddingBottom: 4,
     overflow: "auto",
   },
 });
@@ -36,6 +37,18 @@ const Drawer = chakra("aside", {
 const Image = chakra("img", {
   baseStyle: {
     display: "block",
+  },
+});
+
+const TransparentBackground = chakra(Box, {
+  baseStyle: {
+    display: "flex",
+    mt: "4",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "full",
+    background: `url(${background})`,
+    py: "2",
   },
 });
 
@@ -264,7 +277,7 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
   };
 
   const tint = canvas.onFetchImageFilter(selected.name, "tint");
-  console.log(tint);
+  const mask = canvas.onFetchImageFilter(selected.name, "mask");
 
   return (
     <Drawer>
@@ -308,9 +321,9 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
           <Text fontWeight={700} fontSize="sm">
             Image
           </Text>
-          <Box display="flex" mt="4" alignItems="center" justifyContent="center" width="full" background={`url(${TransparentBackground})`} py="2">
+          <TransparentBackground minHeight="20">
             <EyeDropCanvas ref={eyeDropCanvasRef} cursor={isEyeDropActive ? "crosshair" : "default"} />
-          </Box>
+          </TransparentBackground>
           <ButtonGroup mt="4" isAttached variant="outline" size="sm" width="full">
             <Button fontSize="xs" flex={1} onClick={onOpenImageExplorer}>
               Change Image
@@ -339,18 +352,44 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
           </Grid>
         </Box>
         <Box px="4">
-          <HStack alignItems="center" spacing={3}>
-            <Text fontWeight={700} fontSize="sm">
+          <HStack alignItems="flex-end" spacing={3}>
+            <Text fontWeight={700} fontSize="sm" lineHeight={1}>
               Tint
             </Text>
-            <Switch size="sm" />
           </HStack>
-          <Grid templateColumns="80px 1fr" mt="3" alignItems="center">
-            <Text fontSize="xs" fontWeight={500} color={tint.active ? "black" : "gray.300"}>
-              Color
+          <Box mt="4">
+            {tint.active ? (
+              <ColorPickerInput size="sm" onChange={(color) => canvas.onAddOrEnableImageTint(color)} value={tint.value.color} offsetX={25} />
+            ) : (
+              <ColorPickerInput size="sm" isDisabled offsetX={25} />
+            )}
+          </Box>
+          <ButtonGroup size="sm" variant="outline" mt="3" isAttached width="100%">
+            <Button fontSize="xs" flex={1} onClick={() => canvas.onAddOrEnableImageTint("#FFFFFF", 1)} isDisabled={tint.active}>
+              Add Tint
+            </Button>
+            <Button fontSize="xs" flex={1} onClick={() => canvas.onRemoveImageFilter("tint")} isDisabled={!tint.active}>
+              Remove Tint
+            </Button>
+          </ButtonGroup>
+        </Box>
+        <Box px="4">
+          <HStack alignItems="center" spacing={3}>
+            <Text fontWeight={700} fontSize="sm">
+              Image Mask
             </Text>
-            {tint.active ? <ColorPickerInput value={String(tint.value.color)} onChange={(color) => canvas.onAddOrEnableImageTint(color)} /> : <ColorPickerInput isDisabled />}
-          </Grid>
+          </HStack>
+          <TransparentBackground mt="4" px="2" minHeight="20">
+            {mask.active && <Image src={mask.value.image.src} />}
+          </TransparentBackground>
+          <ButtonGroup size="sm" variant="outline" mt="3" isAttached width="100%">
+            <Button fontSize="xs" flex={1} onClick={() => canvas.onAddImageMask()}>
+              Select Mask
+            </Button>
+            <Button fontSize="xs" flex={1} onClick={() => canvas.onRemoveImageFilter("mask")}>
+              Remove Mask
+            </Button>
+          </ButtonGroup>
         </Box>
       </VStack>
     </Drawer>

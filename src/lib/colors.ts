@@ -41,6 +41,11 @@ export function convertRGBToHex({ r, g, b }: RGB) {
   return "#" + hex;
 }
 
+export function createHexFromAlphaDecimalAndBase(base: string, alpha: number) {
+  const hex = convertAlphaDecimalToHex(alpha);
+  return base + hex;
+}
+
 export function extractAlphaAndBaseFromHex(color: string) {
   const alpha = color.length === 9 ? color.substring(7) : "FF";
   const base = color.length === 9 ? color.substring(0, 7) : color;

@@ -4,13 +4,14 @@ import { CloseButton, Popover, PopoverArrow, PopoverBody, PopoverContent, Popove
 
 interface ColorPickerModalProps extends PopoverProps {
   color?: Color;
+  offsetX?: number;
   children?: React.ReactNode;
   onChangeComplete?: ColorChangeHandler;
 }
 
-export default function ColorPickerModal({ children, isOpen, color, onClose, onChangeComplete }: ColorPickerModalProps) {
+export default function ColorPickerModal({ children, isOpen, color, offsetX = 125, onClose, onChangeComplete }: ColorPickerModalProps) {
   return (
-    <Popover isOpen={isOpen} onClose={onClose} placement="left" closeOnBlur={false} offset={[102, 125]}>
+    <Popover isOpen={isOpen} onClose={onClose} placement="left" closeOnBlur={true} offset={[60, offsetX]}>
       <PopoverTrigger>{children}</PopoverTrigger>
       <PopoverContent width="min-content">
         <PopoverHeader display="flex" pr={2} pl={4} alignItems="center" justifyContent="space-between">
