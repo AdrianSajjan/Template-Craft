@@ -1,17 +1,12 @@
-import * as React from "react";
-
-import { flowResult } from "mobx";
 import { observer } from "mobx-react-lite";
 
 import { Box, Button, ButtonGroup, HStack, Icon, StackDivider, Text, chakra } from "@chakra-ui/react";
-import { TypeIcon, ImageIcon, BoxIcon, TrashIcon, UndoIcon, RedoIcon, FrameIcon, CopyIcon } from "lucide-react";
+import { BoxIcon, CopyIcon, FrameIcon, ImageIcon, RedoIcon, TrashIcon, TypeIcon, UndoIcon } from "lucide-react";
 
 import { useCanvas } from "~/store/canvas";
 import { useTemplate } from "~/store/template";
 
 import { BringToFrontIcon, SendToBackIcon } from "~/components/Icons";
-import { parsePSDFromFile } from "~/lib/psd";
-import { convertPSDToTemplate } from "~/lib/psd";
 
 interface HeaderProps {}
 
@@ -44,34 +39,8 @@ function Header({}: HeaderProps) {
   const [canvas] = useCanvas();
   const template = useTemplate();
 
-  const explorer = React.useRef<HTMLInputElement | null>(null);
-
-  const onOpenFileExplorer = () => {
-    if (!explorer.current) return;
-    explorer.current.click();
-  };
-
-  const onClickFileExplorer = (event: React.MouseEvent<HTMLInputElement, MouseEvent>) => {
-    const element = event.target as HTMLInputElement;
-    element.value = "";
-  };
-
-  const onChangeFileExplorer = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files) return;
-    const file = event.target.files.item(0)!;
-    const psd = await parsePSDFromFile(file);
-    const generated = await convertPSDToTemplate(psd);
-    await flowResult(template.onInitializeTemplate(generated));
-  };
-
   return (
     <Appbar>
-      <Box>
-        <Button fontSize="xs" size="sm" width={130} onClick={onOpenFileExplorer}>
-          Upload PSD File
-        </Button>
-        <input ref={explorer} hidden type="file" accept=".psd" onChange={onChangeFileExplorer} onClick={onClickFileExplorer} />
-      </Box>
       <HStack spacing="2.5" divider={<StackDivider borderColor="gray.200" />}>
         <ButtonGroup spacing="0.5">
           <Action variant="ghost">
@@ -118,7 +87,7 @@ function Header({}: HeaderProps) {
               Front
             </Text>
           </Action>
-          <Action variant="ghost" isDisabled={!canvas.selected}>
+          <Action variant="ghost" isDisabled={!canvas.selected} onClick={() => canvas.onDeleteObject()}>
             <Icon as={TrashIcon} fontSize={20} />
             <Text fontSize="xs" mt="2">
               Delete

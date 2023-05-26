@@ -1,11 +1,14 @@
-import * as React from "react";
-import { observer } from "mobx-react-lite";
-import { ImageIcon, LockIcon, TypeIcon, FrameIcon, UnlockIcon } from "lucide-react";
 import { Box, Button, HStack, Icon, IconButton, Input, List, StackDivider, Text, VStack, chakra, useToast } from "@chakra-ui/react";
+import { FrameIcon, ImageIcon, TypeIcon, UnlockIcon } from "lucide-react";
+import { flowResult } from "mobx";
+import { observer } from "mobx-react-lite";
+import * as React from "react";
 
+import { convertPSDToTemplate, parsePSDFromFile } from "~/lib/psd";
 import { Canvas, useCanvas } from "~/store/canvas";
+import { useTemplate } from "~/store/template";
+
 import { ObjectType } from "~/interfaces/canvas";
-import { nanoid } from "nanoid";
 
 interface ListItemProps {
   name: string;
@@ -104,6 +107,27 @@ const ListItem = observer(({ name, type, canvas }: ListItemProps) => {
 
 function LayerSidebar() {
   const [canvas] = useCanvas();
+  const template = useTemplate();
+
+  const explorer = React.useRef<HTMLInputElement | null>(null);
+
+  const onOpenFileExplorer = () => {
+    if (!explorer.current) return;
+    explorer.current.click();
+  };
+
+  const onClickFileExplorer = (event: React.MouseEvent<HTMLInputElement, MouseEvent>) => {
+    const element = event.target as HTMLInputElement;
+    element.value = "";
+  };
+
+  const onChangeFileExplorer = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files) return;
+    const file = event.target.files.item(0)!;
+    const psd = await parsePSDFromFile(file);
+    const generated = await convertPSDToTemplate(psd);
+    await flowResult(template.onInitializeTemplate(generated));
+  };
 
   if (!canvas.instance) return <Drawer />;
 
@@ -124,17 +148,28 @@ function LayerSidebar() {
         </Box>
         <Box px="4">
           <Text fontWeight={700} fontSize="sm">
+            Import
+          </Text>
+          <VStack mt="4">
+            <Button size="sm" fontSize="xs" width="full" onClick={onOpenFileExplorer}>
+              Import Template - PSD
+            </Button>
+            <Button size="sm" fontSize="xs" width="full">
+              Import Template - JSON
+            </Button>
+            <input ref={explorer} hidden type="file" accept=".psd" onChange={onChangeFileExplorer} onClick={onClickFileExplorer} />
+          </VStack>
+        </Box>
+        <Box px="4">
+          <Text fontWeight={700} fontSize="sm">
             Export
           </Text>
           <VStack mt="4">
             <Button size="sm" fontSize="xs" width="full">
-              Export - PNG
-            </Button>
-            <Button size="sm" fontSize="xs" width="full">
-              Export - ML Template
+              Export Template - PNG
             </Button>
             <Button size="sm" fontSize="xs" width="full" onClick={() => canvas.onExportTemplateAsJSON()}>
-              Export - Canvas JSON
+              Export Template - JSON
             </Button>
           </VStack>
         </Box>

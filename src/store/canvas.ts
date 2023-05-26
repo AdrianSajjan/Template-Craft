@@ -1,4 +1,4 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, toJS } from "mobx";
 import { fabric as fabricJS } from "fabric";
 import { createContext, useCallback, useContext, useEffect } from "react";
 
@@ -172,10 +172,12 @@ export class Canvas {
 
   *onLoadFromJSONTemplate() {}
 
-  onExportTemplateAsJSON() {
+  *onExportTemplateAsJSON() {
     if (!this.instance) return;
     const exported = this.instance.toObject(exportedProps);
-    console.log(JSON.stringify(exported, null, 4));
+    const serialized = JSON.stringify(exported, null, 4);
+    yield navigator.clipboard.writeText(serialized);
+    toast({ title: "Copied JSON to clipboard", variant: "left-accent", status: "success", isClosable: true });
   }
 
   onChangeBackground(template: Pick<Template, "background" | "source">) {
@@ -240,7 +242,7 @@ export class Canvas {
 
   onSelect(event: CanvasMouseEvent) {
     const element = event.selected!.at(0);
-    this.selected = element?.toObject(exportedProps);
+    this.selected = element!.toObject(exportedProps);
   }
 
   onDeselect() {
@@ -262,7 +264,7 @@ export class Canvas {
     if (this.undoStack.length < maxUndoRedoSteps) {
       this.undoStack.push(state);
     } else {
-      this.undoStack.slice(1).push(state);
+      this.undoStack.splice(0, 1).push(state);
     }
   }
 
@@ -279,7 +281,7 @@ export class Canvas {
     this.instance.renderAll();
   }
 
-  *onCopy() {
+  *onCopyObject() {
     if (!this.instance) return;
 
     const element = this.instance.getActiveObject();
@@ -289,7 +291,7 @@ export class Canvas {
     this.clipboard = clone;
   }
 
-  *onPaste() {
+  *onPasteObject() {
     if (!this.instance || !this.clipboard) return;
 
     const clone: fabricJS.Object = yield createFactory(Promise, (resolve) => this.clipboard!.clone((clone) => resolve(clone), exportedProps));
@@ -301,24 +303,24 @@ export class Canvas {
     this.clipboard.top! += 10;
 
     this.instance.add(clone);
+    this.onUpdateObjects();
     this.instance.setActiveObject(clone).fire("object:modified", { target: clone }).renderAll();
   }
 
-  *onDuplicate() {
-    yield this.onCopy();
-    yield this.onPaste();
+  *onDuplicateObject() {
+    yield this.onCopyObject();
+    yield this.onPasteObject();
   }
 
-  onDelete() {
+  onDeleteObject() {
     if (!this.instance) return;
 
     const element = this.instance.getActiveObject();
     if (!element) return;
 
     this.instance.remove(element);
-    this.instance.fire("object:modified", { target: null }).renderAll();
-
     this.onUpdateObjects();
+    this.instance.fire("object:modified", { target: null }).renderAll();
   }
 
   onObjectViewportPlacement(type: "horizontal" | "vertical" | "center") {

@@ -384,7 +384,7 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
           </TransparentBackground>
           <ButtonGroup size="sm" variant="outline" mt="3" isAttached width="100%">
             <Button fontSize="xs" flex={1} onClick={() => canvas.onAddImageMask()}>
-              Select Mask
+              Add Mask
             </Button>
             <Button fontSize="xs" flex={1} onClick={() => canvas.onRemoveImageFilter("mask")}>
               Remove Mask
