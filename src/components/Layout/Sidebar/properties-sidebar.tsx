@@ -14,6 +14,7 @@ import { ColorPickerInput, FontFamilyInput, PropertyInput } from "~/components/I
 import { toFixed } from "~/lib/utils";
 import { textAlignments, viewportAlignment } from "~/constants/alignment";
 import { ObjectType } from "~/interfaces/canvas";
+import { toast } from "~/config/theme";
 
 interface SidebarProps {
   canvas: Canvas;
@@ -239,7 +240,9 @@ const ImagePropertySidebar = observer(({ canvas }: SidebarProps) => {
 
   const explorer = React.useRef<HTMLInputElement | null>(null);
 
-  const { eyeDropCanvasRef, isEyeDropActive, onStartEyeDrop } = useEyeDrop(selected.src, (color) => alert(color));
+  const { eyeDropCanvasRef, isEyeDropActive, onStartEyeDrop } = useEyeDrop(selected.src, (color) =>
+    toast({ title: `Color copied to clipboard: ${color.toUpperCase()}`, variant: "left-accent", status: "info", isClosable: true })
+  );
 
   const onShouldUpdate = () => {
     setShouldUpdate(true);

@@ -41,6 +41,9 @@ function Header({}: HeaderProps) {
 
   return (
     <Appbar>
+      <Box width={130}>
+        <Text fontWeight={700}>Template Craft</Text>
+      </Box>
       <HStack spacing="2.5" divider={<StackDivider borderColor="gray.200" />}>
         <ButtonGroup spacing="0.5">
           <Action variant="ghost">
